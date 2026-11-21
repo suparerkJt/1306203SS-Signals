@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>1306203 – Basic Discrete-Time Signals</title>
+<style>
+html,body{margin:0;padding:0;background:transparent;}
+body{padding:8px;}
+</style>
+</head>
+<body>
+
+<div id="app" class="animation-app">
+
+<style>
+#app {
+    width:100%;
+    max-width:1500px;
+    margin:auto;
+    padding:clamp(8px, 2vw, 24px);
+    box-sizing:border-box;
+    font-family:Arial,sans-serif;
+    position:relative;
+    color:#1f2a44;
+    background:linear-gradient(160deg,#f7f9ff 0%,#eaf0fc 100%);
+    border-radius:18px;
+    box-shadow:0 10px 30px rgba(31,42,68,0.10);
+}
+
+#app * { box-sizing:border-box; }
+
+#app h2 {
+    text-align:center;
+    font-size:clamp(20px, 2.6vw, 30px);
+    margin:12px 0 4px;
+    padding:0 140px;      /* keeps long titles clear of the mode button */
+    letter-spacing:0.5px;
+    background:linear-gradient(90deg,#2f6fed,#12a36a);
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color:transparent;
+    color:transparent;
+}
+
+#app .subtitle {
+    text-align:center;
+    font-size:clamp(13px,1.6vw,17px);
+    margin:0 0 18px;
+    opacity:0.8;
+}
+
+#app button.theme {
+    color:white;
+    border:0;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:bold;
+    white-space:nowrap;
+    touch-action:manipulation;
+    box-shadow:0 4px 10px rgba(0,0,0,0.22);
+    transition:transform .12s, filter .12s;
+    background:linear-gradient(135deg,#8b6cff,#5a3fd4);
+    position:absolute;
+    top:clamp(24px,3vw,36px);
+    right:clamp(8px,1.5vw,16px);
+    padding:8px 14px;
+    font-size:clamp(12px,1.3vw,14px);
+    z-index:2;
+}
+#app button.theme:hover { transform:translateY(-1px); filter:brightness(1.08); }
+#app button.theme:active { transform:scale(0.97); }
+
+/* ---------- two-column layout ---------- */
+#app .layout {
+    display:grid;
+    grid-template-columns:310px minmax(0,1fr);
+    gap:18px;
+    align-items:start;
+}
+
+#app .panel {
+    background:linear-gradient(180deg,#ffffff,#f0f4fc);
+    border:1px solid #cdd7ec;
+    border-radius:14px;
+    box-shadow:0 6px 18px rgba(31,42,68,0.12);
+    padding:14px;
+}
+
+#app .left { display:flex; flex-direction:column; gap:14px; }
+
+#app .panel h3 { margin:0 0 10px; font-size:17px; }
+#app .sigcard { --c:#2f6fed; }
+#app .sigcard h3 { color:var(--c); }
+
+#app .tiles {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+}
+
+#app .tile {
+    cursor:pointer;
+    border:2px solid #d3dcf0;
+    border-radius:10px;
+    padding:6px 4px 5px;
+    text-align:center;
+    font-size:12px;
+    font-weight:bold;
+    background:#ffffff;
+    user-select:none;
+    transition:border-color .12s, box-shadow .12s;
+}
+#app .tile:hover { border-color:var(--c); }
+#app .tile.active {
+    border-color:var(--c);
+    box-shadow:0 0 0 3px color-mix(in srgb, var(--c) 25%, transparent);
+}
+#app .tile svg { display:block; width:100%; height:36px; stroke:var(--c); fill:none; }
+
+#app .formula {
+    margin:12px 0 0;
+    padding:8px 10px;
+    border-radius:8px;
+    background:rgba(47,111,237,0.08);
+    font-size:14px;
+    font-weight:bold;
+    text-align:center;
+}
+
+#app .desc {
+    display:none;
+    margin-top:10px;
+    font-size:13px;
+    line-height:1.5;
+    opacity:0.85;
+}
+#app .desc.show { display:block; }
+
+#app .param {
+    display:none;
+    margin-top:10px;
+    font-size:13px;
+    font-weight:bold;
+}
+#app .param.show { display:block; }
+
+#app input[type=number] {
+    display:block;
+    width:100%;
+    margin-top:5px;
+    padding:7px;
+    font-size:15px;
+    border:1px solid #b9c5e0;
+    border-radius:8px;
+    background:#ffffff;
+    color:#1f2a44;
+    text-align:center;
+}
+#app input[type=number]:focus {
+    outline:none;
+    border-color:#2f6fed;
+    box-shadow:0 0 0 3px rgba(47,111,237,0.25);
+}
+#app input[type=number]:disabled { opacity:0.55; cursor:not-allowed; }
+
+#app .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+#app .grid2 label { font-size:13px; font-weight:bold; }
+
+#app .subhead {
+    margin:14px 0 6px;
+    font-size:14px;
+    font-weight:bold;
+}
+
+#app .seg {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:6px;
+    margin-bottom:10px;
+}
+#app .seg div {
+    cursor:pointer;
+    text-align:center;
+    padding:7px 4px;
+    border:2px solid #d3dcf0;
+    border-radius:9px;
+    background:#ffffff;
+    font-size:13px;
+    font-weight:bold;
+    user-select:none;
+}
+#app .seg div.active {
+    border-color:#2f6fed;
+    box-shadow:0 0 0 3px rgba(47,111,237,0.22);
+    color:#2f6fed;
+}
+
+#app .hint { margin-top:8px; font-size:12px; opacity:0.75; line-height:1.45; }
+
+/* ---------- right column ---------- */
+#app .right { min-width:0; }
+
+#app .statusrow {
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:10px;
+    margin-bottom:12px;
+}
+
+#app .status {
+    text-align:center;
+    width:fit-content;
+    max-width:100%;
+    margin:0;
+    padding:9px 20px;
+    border-radius:999px;
+    background:#ffffff;
+    border:1px solid #d3dcf0;
+    box-shadow:0 3px 10px rgba(31,42,68,0.08);
+    font-size:clamp(12px,1.5vw,16px);
+    font-weight:bold;
+}
+
+#app canvas {
+    display:block;
+    max-width:100%;
+    background:linear-gradient(180deg,#ffffff,#f0f4fc);
+    border:1px solid #cdd7ec;
+    border-radius:14px;
+    box-shadow:0 6px 18px rgba(31,42,68,0.12);
+}
+
+/* ---------- dark mode ---------- */
+#app.dark {
+    background:linear-gradient(160deg,#0d1117 0%,#161d2e 100%);
+    color:#e6edf7;
+    box-shadow:0 10px 30px rgba(0,0,0,0.45);
+}
+#app.dark h2 {
+    background:linear-gradient(90deg,#6aa9ff,#3ddc97);
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+#app.dark .panel,
+#app.dark canvas {
+    background:linear-gradient(180deg,#1b2336,#111724);
+    border-color:#2f3b57;
+    box-shadow:0 6px 18px rgba(0,0,0,0.5);
+}
+#app.dark .sigcard { --c:#58a6ff; }
+#app.dark .tile,
+#app.dark .seg div { background:#0f1522; border-color:#33415f; }
+#app.dark .tile:hover,
+#app.dark .tile.active { border-color:var(--c); }
+#app.dark .seg div.active { border-color:#58a6ff; color:#6aa9ff; box-shadow:0 0 0 3px rgba(88,166,255,0.28); }
+#app.dark .formula { background:rgba(88,166,255,0.12); }
+#app.dark input[type=number] {
+    background:#0f1522;
+    color:#e6edf7;
+    border-color:#3b4866;
+}
+#app.dark input[type=number]:focus {
+    border-color:#58a6ff;
+    box-shadow:0 0 0 3px rgba(88,166,255,0.30);
+}
+#app.dark .status {
+    background:#1a2233;
+    border-color:#33415f;
+    color:#e6edf7;
+    box-shadow:0 3px 12px rgba(0,0,0,0.4);
+}
+
+/* ---------- responsive ---------- */
+@media (max-width:900px) {
+    #app .layout { grid-template-columns:1fr; }
+    #app .left { flex-direction:row; flex-wrap:wrap; }
+    #app .left .panel { flex:1 1 280px; }
+}
+
+@media (max-width:550px) {
+    #app { padding:6px; }
+    #app h2 { margin-top:64px; padding:0; }
+    #app button.theme { padding:7px 11px; }
+}
+</style>
+
+<button class="theme" id="theme">🌙 DARK MODE</button>
+
+<h2>1306203 Signals & Systems: Basic Discrete-Time Signals</h2>
+<div class="subtitle">Choose a signal, set its parameters and the plotting area</div>
+
+<div class="layout">
+
+    <!-- LEFT COLUMN -->
+    <div class="left">
+
+        <div class="panel sigcard" id="card_sig"></div>
+
+        <div class="panel" id="card_axes">
+            <h3>Plotting area</h3>
+
+            <div class="subhead" style="margin-top:0">Index axis (n)</div>
+            <div class="grid2">
+                <label>n<sub>min</sub>
+                    <input id="nmin" type="number" value="-10" min="-1000" max="999" step="1">
+                </label>
+                <label>n<sub>max</sub>
+                    <input id="nmax" type="number" value="10" min="-999" max="1000" step="1">
+                </label>
+            </div>
+            <div class="hint">Integers only (at most 500 samples are shown).</div>
+
+            <div class="subhead">Amplitude axis</div>
+            <div class="seg">
+                <div id="m_auto" class="active">Auto scale</div>
+                <div id="m_fixed">Fixed values</div>
+            </div>
+
+            <div class="grid2">
+                <label>Min amplitude
+                    <input id="ymin" type="number" value="-1" step="0.5" disabled>
+                </label>
+                <label>Max amplitude
+                    <input id="ymax" type="number" value="1" step="0.5" disabled>
+                </label>
+            </div>
+
+            <div class="hint" id="axhint">Auto scale fits the amplitude axis to the signal. The boxes show the range currently used.</div>
+        </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="right">
+        <div class="statusrow">
+            <div class="status" id="status_eq"></div>
+            <div class="status" id="status_rng"></div>
+        </div>
+        <canvas id="cv"></canvas>
+    </div>
+
+</div>
+
+<script>
+(function(){
+
+const root=document.getElementById("app");
+const $=s=>root.querySelector(s);
+
+// ======================================
+// SIGNAL DEFINITIONS  (discrete time)
+// ======================================
+
+// small stem-plot icons (values between -1 and 1)
+const ICONS={
+    exp:  [0.1,0.17,0.27,0.4,0.55,0.72,0.88,1],
+    sine: [1,0.7,0,-0.7,-1,-0.7,0,0.7],
+    step: [0,0,0,1,1,1,1,1],
+    imp:  [0,0,0,1,0,0,0,0]
+};
+
+function iconSVG(vals){
+
+    let g='<svg viewBox="0 0 64 28">'+
+          '<line x1="2" y1="14" x2="62" y2="14" stroke-width="1" opacity="0.35"/>';
+
+    vals.forEach((v,i)=>{
+        const x=7+i*7.2, y=14-v*11;
+        g+='<line x1="'+x+'" y1="14" x2="'+x+'" y2="'+y+'" stroke-width="2" stroke-linecap="round"/>'+
+           '<circle cx="'+x+'" cy="'+y+'" r="2.4" fill="var(--c)" stroke="none"/>';
+    });
+
+    return g+'</svg>';
+}
+
+const TYPES={
+    exp:  {label:"Real exponential"},
+    sine: {label:"Sinusoidal"},
+    step: {label:"Unit step"},
+    imp:  {label:"Unit impulse"}
+};
+
+const ORDER=["exp","sine","step","imp"];
+
+const PARAMS=[
+    {p:"C",label:"Amplitude C",                          types:["exp"],  min:-100, max:100, step:0.1},
+    {p:"a",label:"Base a (real)  —  a<sup>n</sup>",     types:["exp"],  min:-10,  max:10,  step:0.1},
+    {p:"A",label:"Amplitude A",                          types:["sine"], min:-100, max:100, step:0.1},
+    {p:"f",label:"Frequency f (Hz)",                     types:["sine"], min:0,    max:10000, step:0.1},
+    {p:"Fs",label:"Sampling frequency F<sub>s</sub> (Hz, positive integer)", types:["sine"], min:1, max:10000, step:1, int:true},
+    {p:"k",label:"Phase factor k  (φ = k·π)",            types:["sine"], min:-100, max:100, step:0.1}
+];
+
+const DESCS={
+    step:"u[n] = 1 for n ≥ 0 and 0 for n &lt; 0.",
+    imp:"δ[n] = 1 at n = 0 and 0 for every other n."
+};
+
+// extra notes shown under the parameters of a signal type
+const NOTES={
+    exp:"For a = 0 the signal is C·δ[n]: aⁿ is undefined for n &lt; 0, so those samples are drawn as 0.",
+    sine:"Sample n occurs at t = n / F<sub>s</sub> seconds. A second axis shows this time in seconds."
+};
+
+const sig={type:"exp", C:1, a:0.9, A:1, f:1, Fs:10, k:0};
+
+const view={nmin:-10, nmax:10, auto:true, ymin:-1, ymax:1};
+
+// ======================================
+// LEFT COLUMN: SIGNAL CARD
+// ======================================
+
+function buildCard(){
+
+    const card=$("#card_sig");
+
+    let h='<h3>Signal type</h3><div class="tiles">';
+
+    ORDER.forEach(id=>{
+        h+='<div class="tile" data-type="'+id+'">'+iconSVG(ICONS[id])+TYPES[id].label+'</div>';
+    });
+
+    h+='</div><div class="formula" id="formula"></div>';
+
+    PARAMS.forEach(q=>{
+        h+='<label class="param" data-for="'+q.types.join(" ")+'">'+q.label+
+           '<input type="number" data-p="'+q.p+'" min="'+q.min+'" max="'+q.max+
+           '" step="'+q.step+'" value="'+sig[q.p]+'"></label>';
+    });
+
+    Object.keys(DESCS).forEach(id=>{
+        h+='<div class="desc" data-for="'+id+'">'+DESCS[id]+'</div>';
+    });
+
+    Object.keys(NOTES).forEach(id=>{
+        h+='<div class="desc" data-for="'+id+'">'+NOTES[id]+'</div>';
+    });
+
+    card.innerHTML=h;
+
+    card.querySelectorAll(".tile").forEach(el=>{
+        el.addEventListener("click",()=>{
+            sig.type=el.dataset.type;
+            refreshCard();
+            fit();          // the sinusoid has an extra time axis, so it needs more height
+            render();
+        });
+    });
+
+    card.querySelectorAll(".param input").forEach(inp=>{
+        inp.addEventListener("change",()=>{
+
+            const p=inp.dataset.p;
+            let v=Number(inp.value);
+
+            const lo=Number(inp.min), hi=Number(inp.max);
+            if(!Number.isFinite(v)) v=sig[p];
+            if(PARAMS.find(r=>r.p===p).int) v=Math.round(v);
+            v=Math.min(hi,Math.max(lo,v));
+
+            inp.value=v;
+            sig[p]=v;
+            render();
+        });
+    });
+
+    refreshCard();
+}
+
+function refreshCard(){
+
+    const card=$("#card_sig");
+
+    card.querySelectorAll(".tile").forEach(el=>{
+        el.classList.toggle("active",el.dataset.type===sig.type);
+    });
+
+    card.querySelectorAll(".param, .desc").forEach(el=>{
+        el.classList.toggle("show",el.dataset.for.split(" ").includes(sig.type));
+    });
+}
+
+buildCard();
+
+// ======================================
+// PLOT AREA SETTINGS (left column)
+// ======================================
+
+const nminIn=$("#nmin"), nmaxIn=$("#nmax"), yminIn=$("#ymin"), ymaxIn=$("#ymax");
+
+function applyIndex(){
+
+    let a=Number(nminIn.value), b=Number(nmaxIn.value);
+
+    if(!Number.isFinite(a)||!Number.isFinite(b)){
+        nminIn.value=view.nmin;
+        nmaxIn.value=view.nmax;
+        return;
+    }
+
+    a=Math.round(a);
+    b=Math.round(b);
+
+    if(b<=a || b-a>500){
+        nminIn.value=view.nmin;
+        nmaxIn.value=view.nmax;
+        return;
+    }
+
+    nminIn.value=a;
+    nmaxIn.value=b;
+
+    view.nmin=a;
+    view.nmax=b;
+    render();
+}
+
+function applyY(){
+
+    const a=Number(yminIn.value), b=Number(ymaxIn.value);
+
+    if(!Number.isFinite(a)||!Number.isFinite(b)||b<=a){
+        yminIn.value=view.ymin;
+        ymaxIn.value=view.ymax;
+        return;
+    }
+
+    view.ymin=a;
+    view.ymax=b;
+    render();
+}
+
+nminIn.addEventListener("change",applyIndex);
+nmaxIn.addEventListener("change",applyIndex);
+yminIn.addEventListener("change",applyY);
+ymaxIn.addEventListener("change",applyY);
+
+function setMode(auto){
+
+    view.auto=auto;
+
+    $("#m_auto").classList.toggle("active",auto);
+    $("#m_fixed").classList.toggle("active",!auto);
+
+    yminIn.disabled=auto;
+    ymaxIn.disabled=auto;
+
+    $("#axhint").textContent=auto
+        ? "Auto scale fits the amplitude axis to the signal. The boxes show the range currently used."
+        : "Fixed values: the amplitude axis uses exactly the minimum and maximum above.";
+
+    render();
+}
+
+$("#m_auto").addEventListener("click",()=>setMode(true));
+$("#m_fixed").addEventListener("click",()=>setMode(false));
+
+// ======================================
+// THEMES
+// ======================================
+
+const themes={
+    light:{text:"#1f2a44",tick:"#44506e",axis:"#44506e",zero:"#9aa6bf",grid:"#e0e6f3",
+           line:"#2f6fed",accent:"#e5484d",ring:"#ffffff",
+           legendBg:"rgba(255,255,255,0.92)",glow:5},
+    dark:{text:"#e6edf7",tick:"#b4c0d9",axis:"#b4c0d9",zero:"#6e7b96",grid:"#27324a",
+          line:"#58a6ff",accent:"#ff6b6b",ring:"#111724",
+          legendBg:"rgba(15,21,34,0.92)",glow:14}
+};
+
+let darkMode=!!(window.matchMedia &&
+    window.matchMedia("(prefers-color-scheme: dark)").matches);
+let C=themes.light;
+const themeBtn=$("#theme");
+
+function applyTheme(){
+    C=darkMode?themes.dark:themes.light;
+    root.classList.toggle("dark",darkMode);
+    themeBtn.textContent=darkMode?"☀ LIGHT MODE":"🌙 DARK MODE";
+}
+
+themeBtn.addEventListener("click",()=>{
+    darkMode=!darkMode;
+    applyTheme();
+    render();
+});
+
+applyTheme();
+
+// ======================================
+// MATH HELPERS
+// ======================================
+
+function num(v){
+    // short readable number for formulas
+    const r=Math.round(v*1e4)/1e4;
+    return String(r);
+}
+
+// x[n] for an integer n (NaN when the value is not drawable)
+function valueAt(n){
+
+    let v=0;
+
+    if(sig.type==="exp"){
+        // a = 0:  0^n is 1 at n = 0, 0 for n > 0 and undefined for n < 0,
+        // so the signal is C·δ[n] and the samples with n < 0 are drawn as 0
+        if(sig.a===0) v=(n===0)?sig.C:0;
+        else          v=sig.C*Math.pow(sig.a,n);
+    }
+    else if(sig.type==="sine") v=sig.A*Math.cos(2*Math.PI*sig.f/sig.Fs*n+sig.k*Math.PI);
+    else if(sig.type==="step") v=n>=0?1:0;
+    else                       v=n===0?1:0;
+
+    // values beyond 1e15 are not drawn (they would overflow the axis)
+    return (Number.isFinite(v)&&Math.abs(v)<=1e15)?v:NaN;
+}
+
+function equation(){
+    if(sig.type==="exp")
+        return "x[n] = "+num(sig.C)+" · ("+num(sig.a)+")^n";
+    if(sig.type==="sine")
+        return "x[n] = "+num(sig.A)+" · cos(2π · "+num(sig.f)+"/"+num(sig.Fs)+" · n"+
+               (sig.k===0?"":(sig.k<0?" − "+num(-sig.k):" + "+num(sig.k))+"π")+")";
+    if(sig.type==="step") return "x[n] = u[n]";
+    return "x[n] = δ[n]";
+}
+
+function padRange(lo,hi){
+
+    lo=Math.min(0,lo);
+    hi=Math.max(0,hi);
+
+    let span=hi-lo;
+    if(span<1e-12){ lo=-1; hi=1; span=2; }
+
+    return [lo-0.12*span, hi+0.12*span];
+}
+
+// all samples n = nmin .. nmax
+function sampleSignal(){
+
+    const count=view.nmax-view.nmin+1;
+    const vs=new Float64Array(count);
+
+    for(let i=0;i<count;i++) vs[i]=valueAt(view.nmin+i);
+
+    return {vs,count};
+}
+
+function autoRange(cur){
+
+    let lo=0, hi=0;
+
+    for(let i=0;i<cur.count;i++){
+        const v=cur.vs[i];
+        if(Number.isNaN(v)) continue;
+        if(v<lo) lo=v;
+        if(v>hi) hi=v;
+    }
+
+    return padRange(lo,hi);
+}
+
+// Block 1: the function with the actual parameters.
+// Block 2: the plotted index range and amplitude range.
+function updateInfo(ymin,ymax){
+
+    $("#status_eq").textContent=equation();
+
+    $("#status_rng").textContent=
+        "n: "+view.nmin+" … "+view.nmax+"     |     amplitude: "+
+        num(ymin)+" … "+num(ymax)+(view.auto?" (auto)":" (fixed)");
+}
+
+// ======================================
+// CANVAS
+// ======================================
+
+const cv=$("#cv");
+const dpr=()=>window.devicePixelRatio||1;
+let hoverX=null;
+
+function fit(){
+
+    const w=Math.max(280,Math.floor(cv.parentElement.clientWidth));
+    const extra=sig.type==="sine"?48:0;     // room for the time axis
+    const h=Math.round(Math.min(600,Math.max(340,w*0.56)))+extra;
+
+    cv._w=w;
+    cv._h=h;
+    cv.style.width=w+"px";
+    cv.style.height=h+"px";
+    cv.width=Math.round(w*dpr());
+    cv.height=Math.round(h*dpr());
+}
+
+function niceTicks(a,b,n){
+
+    const raw=(b-a)/n;
+    const mag=Math.pow(10,Math.floor(Math.log10(raw)));
+    const r=raw/mag;
+    const step=(r<=1?1:r<=2?2:r<=5?5:10)*mag;
+
+    const ticks=[];
+    for(let v=Math.ceil(a/step-1e-9)*step; v<=b+1e-9; v+=step){
+        ticks.push(Math.abs(v)<step*1e-9?0:v);
+    }
+
+    return {ticks,step};
+}
+
+// integer ticks for the index axis
+function intTicks(a,b,maxCount){
+
+    const raw=(b-a)/maxCount;
+    const cand=[1,2,5,10,20,50,100,200,500];
+    let step=cand[cand.length-1];
+
+    for(const c of cand){ if(c>=raw){ step=c; break; } }
+
+    const ticks=[];
+    for(let v=Math.ceil(a/step)*step; v<=b; v+=step) ticks.push(v);
+
+    return ticks;
+}
+
+function fmt(v,step){
+
+    if(v===0) return "0";
+
+    if(Math.abs(v)>=1e5 || Math.abs(v)<1e-3)
+        return v.toExponential(1).replace("e+","e");
+
+    const dec=Math.max(0,-Math.floor(Math.log10(step)+1e-9));
+    return v.toFixed(Math.min(dec,6));
+}
+
+function roundRect(ctx,x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.arcTo(x+w,y,x+w,y+h,r);
+    ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);
+    ctx.arcTo(x,y,x+w,y,r);
+    ctx.closePath();
+}
+
+function render(){
+
+    const W=cv._w, H=cv._h;
+    const ctx=cv.getContext("2d");
+
+    ctx.setTransform(dpr(),0,0,dpr(),0,0);
+    ctx.clearRect(0,0,W,H);
+    ctx.lineJoin="round";
+
+    $("#formula").textContent=equation();
+
+    // ----- amplitude range
+    const cur=sampleSignal();
+
+    let ymin, ymax;
+
+    if(view.auto){
+
+        [ymin,ymax]=autoRange(cur);
+
+        view.ymin=Number(ymin.toFixed(3));
+        view.ymax=Number(ymax.toFixed(3));
+        yminIn.value=view.ymin;
+        ymaxIn.value=view.ymax;
+    }
+    else{
+        ymin=view.ymin;
+        ymax=view.ymax;
+    }
+
+    updateInfo(ymin,ymax);
+
+    // ----- plot geometry
+    const hasTime=sig.type==="sine";        // sinusoid: extra axis in seconds
+    const L=68, R=W-24, T=40, B=H-(hasTime?96:48);
+    const x0=view.nmin-0.5, x1=view.nmax+0.5;
+    const unit=(R-L)/(x1-x0);
+
+    const X=n=>L+(n-x0)/(x1-x0)*(R-L);
+    const Y=v=>B-(v-ymin)/(ymax-ymin)*(B-T);
+
+    // ----- grid and tick labels
+    const xt=intTicks(view.nmin,view.nmax,Math.max(4,Math.floor((R-L)/48)));
+    const yt=niceTicks(ymin,ymax,Math.max(4,Math.floor((B-T)/55)));
+
+    ctx.font="12px Arial";
+    ctx.lineWidth=1;
+
+    xt.forEach(v=>{
+        const x=X(v);
+
+        ctx.strokeStyle=C.grid;
+        ctx.beginPath(); ctx.moveTo(x,T); ctx.lineTo(x,B); ctx.stroke();
+
+        ctx.fillStyle=C.tick;
+        ctx.textAlign="center";
+        ctx.fillText(String(v),x,B+18);
+    });
+
+    yt.ticks.forEach(v=>{
+        const y=Y(v);
+
+        ctx.strokeStyle=C.grid;
+        ctx.beginPath(); ctx.moveTo(L,y); ctx.lineTo(R,y); ctx.stroke();
+
+        ctx.fillStyle=C.tick;
+        ctx.textAlign="right";
+        ctx.fillText(fmt(v,yt.step),L-8,y+4);
+    });
+
+    // zero lines (only when visible)
+    ctx.strokeStyle=C.zero;
+    ctx.lineWidth=1.6;
+    ctx.beginPath();
+    if(ymin<=0&&ymax>=0){ ctx.moveTo(L,Y(0)); ctx.lineTo(R,Y(0)); }
+    if(view.nmin<=0&&view.nmax>=0){ ctx.moveTo(X(0),T); ctx.lineTo(X(0),B); }
+    ctx.stroke();
+
+    // frame
+    ctx.strokeStyle=C.axis;
+    ctx.lineWidth=1.5;
+    ctx.beginPath();
+    ctx.moveTo(L,T); ctx.lineTo(L,B); ctx.lineTo(R,B);
+    ctx.stroke();
+
+    // titles and axis labels
+    ctx.fillStyle=C.text;
+    ctx.textAlign="left";
+    ctx.font="bold 16px Arial";
+    ctx.fillText(equation(),L,26);
+
+    ctx.textAlign="center";
+    ctx.font="14px Arial";
+    if(!hasTime){
+        ctx.fillText("n  (sample index)",(L+R)/2,H-10);
+    }
+    else{
+
+        ctx.fillText("n  (sample index)",(L+R)/2,B+36);
+
+        // second x-axis: time in seconds, t = n / Fs
+        const Fs=sig.Fs, ty=B+46;
+        const tt=niceTicks(view.nmin/Fs,view.nmax/Fs,Math.max(4,Math.floor((R-L)/90)));
+
+        ctx.strokeStyle=C.axis;
+        ctx.lineWidth=1.5;
+        ctx.beginPath(); ctx.moveTo(L,ty); ctx.lineTo(R,ty); ctx.stroke();
+
+        ctx.font="12px Arial";
+        ctx.textAlign="center";
+
+        tt.ticks.forEach(v=>{
+
+            const x=X(v*Fs);
+            if(x<L-0.5||x>R+0.5) return;
+
+            ctx.strokeStyle=C.axis;
+            ctx.lineWidth=1.2;
+            ctx.beginPath(); ctx.moveTo(x,ty); ctx.lineTo(x,ty+5); ctx.stroke();
+
+            ctx.fillStyle=C.tick;
+            ctx.fillText(fmt(v,tt.step),x,ty+19);
+        });
+
+        ctx.font="14px Arial";
+        ctx.fillStyle=C.text;
+        ctx.fillText("t  (seconds),   t = n / Fs",(L+R)/2,ty+42);
+    }
+
+    ctx.save();
+    ctx.translate(18,(T+B)/2);
+    ctx.rotate(-Math.PI/2);
+    ctx.fillText("x[n]",0,0);
+    ctx.restore();
+
+    // ----- stems
+    const r=cur.count>150?2:cur.count>90?2.6:cur.count>50?3.4:cur.count>30?4.2:5;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(L,T,R-L,B-T);
+    ctx.clip();
+
+    ctx.strokeStyle=C.line;
+    ctx.fillStyle=C.line;
+    ctx.lineWidth=cur.count>90?1.6:2.6;
+    ctx.lineCap="round";
+    ctx.shadowColor=C.line;
+    ctx.shadowBlur=C.glow;
+
+    for(let i=0;i<cur.count;i++){
+
+        const v=cur.vs[i];
+        if(Number.isNaN(v)) continue;
+
+        const x=X(view.nmin+i);
+        const y=Math.max(-1e5,Math.min(1e5,Y(v)));
+
+        if(v!==0){
+            ctx.beginPath(); ctx.moveTo(x,Y(0)); ctx.lineTo(x,y); ctx.stroke();
+        }
+
+        // zero-valued samples get a small dot
+        ctx.beginPath(); ctx.arc(x,y,v===0?r*0.55:r,0,2*Math.PI); ctx.fill();
+    }
+
+    ctx.restore();
+
+    // ----- hover read-out (nearest sample)
+    if(hoverX!==null && hoverX>=L && hoverX<=R){
+
+        const n=Math.min(view.nmax,Math.max(view.nmin,Math.round(view.nmin+(hoverX-L)/unit-0.5)));
+        const v=valueAt(n);
+        const hx=X(n);
+
+        ctx.save();
+        ctx.strokeStyle=C.accent;
+        ctx.globalAlpha=0.7;
+        ctx.lineWidth=1.5;
+        ctx.setLineDash([5,5]);
+        ctx.beginPath(); ctx.moveTo(hx,T); ctx.lineTo(hx,B); ctx.stroke();
+        ctx.restore();
+
+        if(Number.isFinite(v)){
+
+            const py=Y(v);
+
+            if(py>=T&&py<=B){
+                ctx.fillStyle=C.accent;
+                ctx.beginPath(); ctx.arc(hx,py,r+2,0,2*Math.PI); ctx.fill();
+                ctx.strokeStyle=C.ring;
+                ctx.lineWidth=2;
+                ctx.beginPath(); ctx.arc(hx,py,r+2,0,2*Math.PI); ctx.stroke();
+            }
+
+            const label="n = "+n+(hasTime?"  (t = "+(n/sig.Fs).toFixed(3)+" s)":"")+",   x[n] = "+(Math.abs(v)>=1e5?v.toExponential(3):v.toFixed(3));
+
+            ctx.font="bold 13px Arial";
+            const w=ctx.measureText(label).width+20;
+            const bx=R-w-8, by=T+8;
+
+            roundRect(ctx,bx,by,w,28,8);
+            ctx.fillStyle=C.legendBg;
+            ctx.fill();
+
+            ctx.fillStyle=C.text;
+            ctx.textAlign="left";
+            ctx.fillText(label,bx+10,by+19);
+        }
+    }
+}
+
+cv.addEventListener("mousemove",e=>{
+    const r=cv.getBoundingClientRect();
+    hoverX=(e.clientX-r.left)*(cv._w/r.width);
+    render();
+});
+
+cv.addEventListener("mouseleave",()=>{
+    hoverX=null;
+    render();
+});
+
+cv.addEventListener("touchmove",e=>{
+    const r=cv.getBoundingClientRect();
+    hoverX=(e.touches[0].clientX-r.left)*(cv._w/r.width);
+    render();
+},{passive:true});
+
+cv.addEventListener("touchend",()=>{
+    hoverX=null;
+    render();
+});
+
+// ======================================
+// RESPONSIVE RESIZING
+// ======================================
+
+function resize(){
+    fit();
+    render();
+}
+
+if(typeof ResizeObserver!=="undefined"){
+    new ResizeObserver(resize).observe(cv.parentElement);
+}
+window.addEventListener("resize",resize);
+
+// initial display
+fit();
+render();
+
+})();
+</script>
+
+</div>
+
+<script>
+// tell the parent page how tall this app is, so the iframe fits it exactly
+(function(){
+  var el=document.getElementById("app");
+  function send(){
+    var h=Math.ceil(el.getBoundingClientRect().height)+16;
+    if(window.parent!==window) window.parent.postMessage({appHeight:h,app:location.pathname},"*");
+  }
+  if(typeof ResizeObserver!=="undefined") new ResizeObserver(send).observe(el);
+  window.addEventListener("load",send);
+  window.addEventListener("resize",send);
+  send();
+})();
+</script>
+</body>
+</html>

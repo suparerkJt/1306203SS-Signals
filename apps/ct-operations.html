@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>1306203 – Time Operations (Continuous-Time)</title>
+<style>
+html,body{margin:0;padding:0;background:transparent;}
+body{padding:8px;}
+</style>
+</head>
+<body>
+
+<div id="app" class="animation-app">
+
+<style>
+#app {
+    width:100%;
+    max-width:1500px;
+    margin:auto;
+    padding:clamp(8px, 2vw, 24px);
+    box-sizing:border-box;
+    font-family:Arial,sans-serif;
+    position:relative;
+    color:#1f2a44;
+    background:linear-gradient(160deg,#f7f9ff 0%,#eaf0fc 100%);
+    border-radius:18px;
+    box-shadow:0 10px 30px rgba(31,42,68,0.10);
+}
+
+#app * { box-sizing:border-box; }
+
+#app h2 {
+    text-align:center;
+    font-size:clamp(20px, 2.6vw, 30px);
+    margin:12px 0 4px;
+    padding:0 140px;      /* keeps long titles clear of the mode button */
+    letter-spacing:0.5px;
+    background:linear-gradient(90deg,#2f6fed,#12a36a);
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color:transparent;
+    color:transparent;
+}
+
+#app .subtitle {
+    text-align:center;
+    font-size:clamp(13px,1.6vw,17px);
+    margin:0 0 18px;
+    opacity:0.8;
+}
+
+#app button.theme {
+    color:white;
+    border:0;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:bold;
+    white-space:nowrap;
+    touch-action:manipulation;
+    box-shadow:0 4px 10px rgba(0,0,0,0.22);
+    transition:transform .12s, filter .12s;
+    background:linear-gradient(135deg,#8b6cff,#5a3fd4);
+    position:absolute;
+    top:clamp(24px,3vw,36px);
+    right:clamp(8px,1.5vw,16px);
+    padding:8px 14px;
+    font-size:clamp(12px,1.3vw,14px);
+    z-index:2;
+}
+#app button.theme:hover { transform:translateY(-1px); filter:brightness(1.08); }
+#app button.theme:active { transform:scale(0.97); }
+
+/* ---------- two-column layout ---------- */
+#app .layout {
+    display:grid;
+    grid-template-columns:310px minmax(0,1fr);
+    gap:18px;
+    align-items:start;
+}
+
+#app .panel {
+    background:linear-gradient(180deg,#ffffff,#f0f4fc);
+    border:1px solid #cdd7ec;
+    border-radius:14px;
+    box-shadow:0 6px 18px rgba(31,42,68,0.12);
+    padding:14px;
+}
+
+#app .left { display:flex; flex-direction:column; gap:14px; }
+
+#app .panel h3 { margin:0 0 10px; font-size:17px; }
+#app .sigcard { --c:#2f6fed; }
+#app .sigcard h3 { color:var(--c); }
+
+#app .tiles {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+}
+
+#app .tile {
+    cursor:pointer;
+    border:2px solid #d3dcf0;
+    border-radius:10px;
+    padding:6px 4px 5px;
+    text-align:center;
+    font-size:12px;
+    font-weight:bold;
+    background:#ffffff;
+    user-select:none;
+    transition:border-color .12s, box-shadow .12s;
+}
+#app .tile:hover { border-color:var(--c); }
+#app .tile.active {
+    border-color:var(--c);
+    box-shadow:0 0 0 3px color-mix(in srgb, var(--c) 25%, transparent);
+}
+#app .tile svg { display:block; width:100%; height:36px; stroke:var(--c); fill:none; }
+
+#app .formula {
+    margin:12px 0 0;
+    padding:8px 10px;
+    border-radius:8px;
+    background:rgba(47,111,237,0.08);
+    font-size:14px;
+    font-weight:bold;
+    text-align:center;
+}
+
+#app .desc {
+    display:none;
+    margin-top:10px;
+    font-size:13px;
+    line-height:1.5;
+    opacity:0.85;
+}
+#app .desc.show { display:block; }
+
+#app .param {
+    display:none;
+    margin-top:10px;
+    font-size:13px;
+    font-weight:bold;
+}
+#app .param.show { display:block; }
+
+#app input[type=number] {
+    display:block;
+    width:100%;
+    margin-top:5px;
+    padding:7px;
+    font-size:15px;
+    border:1px solid #b9c5e0;
+    border-radius:8px;
+    background:#ffffff;
+    color:#1f2a44;
+    text-align:center;
+}
+#app input[type=number]:focus {
+    outline:none;
+    border-color:#2f6fed;
+    box-shadow:0 0 0 3px rgba(47,111,237,0.25);
+}
+#app input[type=number]:disabled { opacity:0.55; cursor:not-allowed; }
+
+#app .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+#app .grid2 label { font-size:13px; font-weight:bold; }
+
+#app .subhead {
+    margin:14px 0 6px;
+    font-size:14px;
+    font-weight:bold;
+}
+
+#app .seg {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:6px;
+    margin-bottom:10px;
+}
+#app .seg div {
+    cursor:pointer;
+    text-align:center;
+    padding:7px 4px;
+    border:2px solid #d3dcf0;
+    border-radius:9px;
+    background:#ffffff;
+    font-size:13px;
+    font-weight:bold;
+    user-select:none;
+}
+#app .seg div.active {
+    border-color:#2f6fed;
+    box-shadow:0 0 0 3px rgba(47,111,237,0.22);
+    color:#2f6fed;
+}
+
+#app .hint { margin-top:8px; font-size:12px; opacity:0.75; line-height:1.45; }
+
+/* ---------- right column ---------- */
+#app .right { min-width:0; }
+
+#app .statusrow {
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:10px;
+    margin-bottom:12px;
+}
+
+#app .status {
+    text-align:center;
+    width:fit-content;
+    max-width:100%;
+    margin:0;
+    padding:9px 20px;
+    border-radius:999px;
+    background:#ffffff;
+    border:1px solid #d3dcf0;
+    box-shadow:0 3px 10px rgba(31,42,68,0.08);
+    font-size:clamp(12px,1.5vw,16px);
+    font-weight:bold;
+}
+
+#app canvas {
+    display:block;
+    max-width:100%;
+    background:linear-gradient(180deg,#ffffff,#f0f4fc);
+    border:1px solid #cdd7ec;
+    border-radius:14px;
+    box-shadow:0 6px 18px rgba(31,42,68,0.12);
+}
+
+#app .plots { display:flex; flex-direction:column; gap:12px; min-width:0; }
+
+#app .tile { line-height:1.25; }
+
+/* ---------- dark mode ---------- */
+#app.dark {
+    background:linear-gradient(160deg,#0d1117 0%,#161d2e 100%);
+    color:#e6edf7;
+    box-shadow:0 10px 30px rgba(0,0,0,0.45);
+}
+#app.dark h2 {
+    background:linear-gradient(90deg,#6aa9ff,#3ddc97);
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+#app.dark .panel,
+#app.dark canvas {
+    background:linear-gradient(180deg,#1b2336,#111724);
+    border-color:#2f3b57;
+    box-shadow:0 6px 18px rgba(0,0,0,0.5);
+}
+#app.dark .sigcard { --c:#58a6ff; }
+#app.dark .tile,
+#app.dark .seg div { background:#0f1522; border-color:#33415f; }
+#app.dark .tile:hover,
+#app.dark .tile.active { border-color:var(--c); }
+#app.dark .seg div.active { border-color:#58a6ff; color:#6aa9ff; box-shadow:0 0 0 3px rgba(88,166,255,0.28); }
+#app.dark .formula { background:rgba(88,166,255,0.12); }
+#app.dark input[type=number] {
+    background:#0f1522;
+    color:#e6edf7;
+    border-color:#3b4866;
+}
+#app.dark input[type=number]:focus {
+    border-color:#58a6ff;
+    box-shadow:0 0 0 3px rgba(88,166,255,0.30);
+}
+#app.dark .status {
+    background:#1a2233;
+    border-color:#33415f;
+    color:#e6edf7;
+    box-shadow:0 3px 12px rgba(0,0,0,0.4);
+}
+
+/* ---------- responsive ---------- */
+@media (max-width:900px) {
+    #app .layout { grid-template-columns:1fr; }
+    #app .left { flex-direction:row; flex-wrap:wrap; }
+    #app .left .panel { flex:1 1 280px; }
+}
+
+@media (max-width:550px) {
+    #app { padding:6px; }
+    #app h2 { margin-top:64px; padding:0; }
+    #app button.theme { padding:7px 11px; }
+}
+</style>
+
+<button class="theme" id="theme">🌙 DARK MODE</button>
+
+<h2>1306203 Signals & Systems: Time Operations on a Continuous-Time Signal</h2>
+<div class="subtitle">Choose a prototype x(t) and a time operation: shifting, reversal or scaling</div>
+
+<div class="layout">
+
+    <!-- LEFT COLUMN -->
+    <div class="left">
+
+        <div class="panel sigcard" id="card_proto"></div>
+
+        <div class="panel sigcard" id="card_op"></div>
+
+        <div class="panel" id="card_axes">
+            <h3>Plotting area</h3>
+
+            <div class="subhead" style="margin-top:0">Time axis</div>
+            <div class="grid2">
+                <label>t<sub>min</sub> (s)
+                    <input id="tmin" type="number" value="-8" min="-1000" max="999" step="1">
+                </label>
+                <label>t<sub>max</sub> (s)
+                    <input id="tmax" type="number" value="8" min="-999" max="1000" step="1">
+                </label>
+            </div>
+
+            <div class="subhead">Amplitude axis</div>
+            <div class="seg">
+                <div id="m_auto" class="active">Auto scale</div>
+                <div id="m_fixed">Fixed values</div>
+            </div>
+
+            <div class="grid2">
+                <label>Min amplitude
+                    <input id="ymin" type="number" value="-1" step="0.5" disabled>
+                </label>
+                <label>Max amplitude
+                    <input id="ymax" type="number" value="1" step="0.5" disabled>
+                </label>
+            </div>
+
+            <div class="hint" id="axhint">Auto scale fits one common amplitude axis to both plots. The boxes show the range currently used.</div>
+        </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="right">
+        <div class="statusrow">
+            <div class="status" id="status_eq"></div>
+            <div class="status" id="status_rng"></div>
+        </div>
+        <div class="plots" id="plots">
+            <canvas id="cTop"></canvas>
+            <canvas id="cBot"></canvas>
+        </div>
+    </div>
+
+</div>
+
+<script>
+(function(){
+
+const root=document.getElementById("app");
+const $=s=>root.querySelector(s);
+
+// ======================================
+// DEFINITIONS
+// ======================================
+
+const PROTOS={
+    step:{label:"Unit step u(t)",
+          path:"M2 24 H19 V6 H38"},
+    exp: {label:"e<sup>−at</sup> u(t)",
+          path:"M2 24 H11 V6 C16 17 26 22 38 23"},
+    cos: {label:"cos(2πft + φ)",
+          path:"M2 14 C7 0 13 0 19 14 S31 28 38 14"},
+    ramp:{label:"A − t,  0 ≤ t ≤ A",
+          path:"M2 24 H10 V6 L26 24 H38"}
+};
+const PROTO_ORDER=["step","exp","cos","ramp"];
+
+const OPS={
+    shift:{label:"Time shifting<br>x(t − T<sub>0</sub>)",
+           path:"M4 14 H30 M23 7 L31 14 L23 21"},
+    rev:  {label:"Time reversal<br>x(−t)",
+           path:"M2 14 H38 M10 7 L2 14 L10 21 M30 7 L38 14 L30 21"},
+    scale:{label:"Time scaling<br>x(αt)",
+           path:"M8 22 V6 M32 22 V6 M8 14 H32 M14 8 L8 14 L14 20 M26 8 L32 14 L26 20"},
+    combo:{label:"Shifting + scaling<br>x(αt + T<sub>0</sub>)",
+           path:"M3 14 H25 M19 8 L26 14 L19 20 M30 6 V22 M37 6 V22"}
+};
+const OP_ORDER=["shift","rev","scale","combo"];
+
+// adjustable parameters; "group" says which card they belong to
+const PARAMS=[
+    {g:"proto",p:"a",    label:"Decay rate a",                 types:["exp"],   min:-10,  max:10,  step:0.1},
+    {g:"proto",p:"f",    label:"Frequency f (Hz)",             types:["cos"],   min:0,    max:20,  step:0.1},
+    {g:"proto",p:"k",    label:"Phase factor k  (φ = k·π)",    types:["cos"],   min:-100, max:100, step:0.1},
+    {g:"proto",p:"A",    label:"Parameter A",                  types:["ramp"],  min:0.1,  max:20,  step:0.1},
+    {g:"op",   p:"T0",   label:"Shift T<sub>0</sub> (s)",      types:["shift","combo"], min:-50,  max:50,  step:0.1},
+    {g:"op",   p:"alpha",label:"Scale factor α (α ≠ 0)",       types:["scale","combo"], min:-20,  max:20,  step:0.1, nonzero:true}
+];
+
+const DESCS={
+    step:"u(t) = 1 for t ≥ 0 and 0 for t &lt; 0."
+};
+
+const proto={type:"ramp", a:1, f:0.5, k:0, A:2};
+const op={type:"shift", T0:3, alpha:2};
+const isOn=(state,id)=>state.type===id;
+
+const view={tmin:-8, tmax:8, auto:true, ymin:-1, ymax:1};
+
+// ======================================
+// LEFT COLUMN: CARDS
+// ======================================
+
+function buildCard(cardId,title,items,order,group,state){
+
+    const card=$(cardId);
+
+    let h='<h3>'+title+'</h3>'+(group==="op"?'<div style="font-size:12px;opacity:.75;margin:-4px 0 8px">Choose one operation at a time.</div>':'')+'<div class="tiles">';
+
+    order.forEach((id,i)=>{
+        const wide=(order.length%2===1&&i===order.length-1)?' style="grid-column:1 / -1"':'';
+        h+='<div class="tile" data-type="'+id+'"'+wide+'>'+
+           '<svg viewBox="0 0 40 28"><path d="'+items[id].path+
+           '" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
+           items[id].label+'</div>';
+    });
+
+    h+='</div>';
+
+    if(group==="proto") h+='<div class="formula" id="formula"></div>';
+    else                h+='<div class="formula" id="opformula"></div>';
+
+    PARAMS.filter(q=>q.g===group).forEach(q=>{
+        h+='<label class="param" data-for="'+q.types.join(" ")+'">'+q.label+
+           '<input type="number" data-p="'+q.p+'" min="'+q.min+'" max="'+q.max+
+           '" step="'+q.step+'" value="'+state[q.p]+'"></label>';
+    });
+
+    Object.keys(DESCS).forEach(id=>{
+        if(order.includes(id))
+            h+='<div class="desc" data-for="'+id+'">'+DESCS[id]+'</div>';
+    });
+
+    if(group==="op") h+='<div class="desc show" id="opnote"></div>';
+
+    card.innerHTML=h;
+
+    card.querySelectorAll(".tile").forEach(el=>{
+        el.addEventListener("click",()=>{
+            state.type=el.dataset.type;
+            refreshCard(cardId,state);
+            render();
+        });
+    });
+
+    card.querySelectorAll(".param input").forEach(inp=>{
+        inp.addEventListener("change",()=>{
+
+            const p=inp.dataset.p;
+            const q=PARAMS.find(r=>r.g===group&&r.p===p);
+
+            let v=Number(inp.value);
+
+            if(!Number.isFinite(v)) v=state[p];
+            v=Math.min(q.max,Math.max(q.min,v));
+            if(q.nonzero&&v===0) v=state[p];
+
+            inp.value=v;
+            state[p]=v;
+            render();
+        });
+    });
+
+    refreshCard(cardId,state);
+}
+
+function refreshCard(cardId,state){
+
+    const card=$(cardId);
+
+    card.querySelectorAll(".tile").forEach(el=>{
+        el.classList.toggle("active",isOn(state,el.dataset.type));
+    });
+
+    card.querySelectorAll(".param, .desc[data-for]").forEach(el=>{
+        el.classList.toggle("show",el.dataset.for.split(" ").some(id=>isOn(state,id)));
+    });
+}
+
+buildCard("#card_proto","1. Signal prototype x(t)",PROTOS,PROTO_ORDER,"proto",proto);
+buildCard("#card_op","2. Time operation",OPS,OP_ORDER,"op",op);
+
+// ======================================
+// PLOT AREA SETTINGS (left column)
+// ======================================
+
+const tminIn=$("#tmin"), tmaxIn=$("#tmax"), yminIn=$("#ymin"), ymaxIn=$("#ymax");
+
+function applyTime(){
+
+    const a=Number(tminIn.value), b=Number(tmaxIn.value);
+
+    if(!Number.isFinite(a)||!Number.isFinite(b)||b<=a){
+        tminIn.value=view.tmin;
+        tmaxIn.value=view.tmax;
+        return;
+    }
+
+    view.tmin=a;
+    view.tmax=b;
+    render();
+}
+
+function applyY(){
+
+    const a=Number(yminIn.value), b=Number(ymaxIn.value);
+
+    if(!Number.isFinite(a)||!Number.isFinite(b)||b<=a){
+        yminIn.value=view.ymin;
+        ymaxIn.value=view.ymax;
+        return;
+    }
+
+    view.ymin=a;
+    view.ymax=b;
+    render();
+}
+
+tminIn.addEventListener("change",applyTime);
+tmaxIn.addEventListener("change",applyTime);
+yminIn.addEventListener("change",applyY);
+ymaxIn.addEventListener("change",applyY);
+
+function setMode(auto){
+
+    view.auto=auto;
+
+    $("#m_auto").classList.toggle("active",auto);
+    $("#m_fixed").classList.toggle("active",!auto);
+
+    yminIn.disabled=auto;
+    ymaxIn.disabled=auto;
+
+    $("#axhint").textContent=auto
+        ? "Auto scale fits one common amplitude axis to both plots. The boxes show the range currently used."
+        : "Fixed values: both plots use exactly the minimum and maximum above.";
+
+    render();
+}
+
+$("#m_auto").addEventListener("click",()=>setMode(true));
+$("#m_fixed").addEventListener("click",()=>setMode(false));
+
+// ======================================
+// THEMES
+// ======================================
+
+const themes={
+    light:{text:"#1f2a44",tick:"#44506e",axis:"#44506e",zero:"#9aa6bf",grid:"#e0e6f3",
+           x:"#2f6fed",y:"#12a36a",accent:"#e5484d",ring:"#ffffff",
+           legendBg:"rgba(255,255,255,0.92)",glow:5},
+    dark:{text:"#e6edf7",tick:"#b4c0d9",axis:"#b4c0d9",zero:"#6e7b96",grid:"#27324a",
+          x:"#58a6ff",y:"#3ddc97",accent:"#ff6b6b",ring:"#111724",
+          legendBg:"rgba(15,21,34,0.92)",glow:14}
+};
+
+let darkMode=!!(window.matchMedia &&
+    window.matchMedia("(prefers-color-scheme: dark)").matches);
+let C=themes.light;
+const themeBtn=$("#theme");
+
+function applyTheme(){
+    C=darkMode?themes.dark:themes.light;
+    root.classList.toggle("dark",darkMode);
+    themeBtn.textContent=darkMode?"☀ LIGHT MODE":"🌙 DARK MODE";
+}
+
+themeBtn.addEventListener("click",()=>{
+    darkMode=!darkMode;
+    applyTheme();
+    render();
+});
+
+applyTheme();
+
+// ======================================
+// SIGNALS AND TIME OPERATIONS
+// ======================================
+
+function num(v){
+    const r=Math.round(v*1e4)/1e4;
+    return String(r).replace("-","−");
+}
+
+// the prototype x(t)
+function xBase(t){
+
+    let v;
+
+    if(proto.type==="step")      v=t>=0?1:0;
+    else if(proto.type==="exp")  v=t>=0?Math.exp(-proto.a*t):0;
+    else if(proto.type==="cos")  v=Math.cos(2*Math.PI*proto.f*t+proto.k*Math.PI);
+    else                         v=(t>=0&&t<=proto.A)?proto.A-t:0;
+
+    // values beyond 1e15 are not drawn (they would overflow the axis)
+    return (Number.isFinite(v)&&Math.abs(v)<=1e15)?v:NaN;
+}
+
+// argument of x(.) for the chosen time operation
+function argOf(t){
+    if(op.type==="shift") return t-op.T0;
+    if(op.type==="rev")   return -t;
+    if(op.type==="scale") return op.alpha*t;
+    return op.alpha*t+op.T0;
+}
+
+function yBase(t){ return xBase(argOf(t)); }
+
+// ---------- text ----------
+
+function phaseText(){
+    return proto.k===0?"":(proto.k<0?" − "+num(-proto.k):" + "+num(proto.k))+"π";
+}
+
+function protoEq(){
+    if(proto.type==="step") return "x(t) = u(t)";
+    if(proto.type==="exp")  return "x(t) = exp("+num(-proto.a)+" t) · u(t)";
+    if(proto.type==="cos")  return "x(t) = cos(2π · "+num(proto.f)+" · t"+phaseText()+")";
+    return "x(t) = "+num(proto.A)+" − t   for 0 ≤ t ≤ "+num(proto.A)+",   0 otherwise";
+}
+
+// argument written as text, e.g. "t − 3", "−t", "2t"
+function argText(){
+
+    if(op.type==="shift"){
+        if(op.T0===0) return "t";
+        return op.T0>0?"t − "+num(op.T0):"t + "+num(-op.T0);
+    }
+
+    if(op.type==="rev") return "−t";
+
+    const at=op.alpha===1?"t":(op.alpha===-1?"−t":num(op.alpha)+"t");
+
+    if(op.type==="scale"||op.T0===0) return at;
+
+    return at+(op.T0>0?" + "+num(op.T0):" − "+num(-op.T0));
+}
+
+// the prototype's formula with t replaced by the argument
+function substituted(arg){
+
+    const par=(arg==="t")?"t":"("+arg+")";
+
+    if(proto.type==="step") return "u("+arg+")";
+    if(proto.type==="exp")  return "exp("+num(-proto.a)+" · "+par+") · u("+arg+")";
+    if(proto.type==="cos")  return "cos(2π · "+num(proto.f)+" · "+par+phaseText()+")";
+    return "("+num(proto.A)+" − "+par+")   for 0 ≤ "+arg+" ≤ "+num(proto.A)+",   0 otherwise";
+}
+
+function opName(){
+    if(op.type==="shift") return "time shifting";
+    if(op.type==="rev")   return "time reversal";
+    if(op.type==="scale") return "time scaling";
+    return "time shifting + scaling";
+}
+
+function scaleNote(){
+    const a=Math.abs(op.alpha);
+    let t;
+    if(a>1) t="compressed in time by a factor of "+num(a);
+    else if(a<1) t="stretched in time by a factor of "+num(1/a);
+    else t="not scaled (|α| = 1)";
+    return "The signal is "+t+(op.alpha<0?" and also reversed (α is negative)":"")+".";
+}
+
+function opNote(){
+
+    if(op.type==="shift"){
+        if(op.T0>0) return "x(t) is delayed: the whole shape moves to the right by "+num(op.T0)+" s.";
+        if(op.T0<0) return "x(t) is advanced: the whole shape moves to the left by "+num(-op.T0)+" s.";
+        return "T₀ = 0, so the signal is unchanged.";
+    }
+
+    if(op.type==="rev") return "The signal is mirrored about t = 0 (left and right are swapped).";
+
+    if(op.type==="scale") return scaleNote();
+
+    const d=-op.T0/op.alpha;
+    return scaleNote()+" Since x(αt + T₀) = x(α(t + T₀/α)), the scaled shape is also shifted by "+
+           num(d)+" s (T₀/α = "+num(op.T0/op.alpha)+", moved "+(d>0?"right":d<0?"left":"nowhere")+").";
+}
+
+// ======================================
+// SAMPLING AND RANGES
+// ======================================
+
+function padRange(lo,hi){
+
+    lo=Math.min(0,lo);
+    hi=Math.max(0,hi);
+
+    let span=hi-lo;
+    if(span<1e-12){ lo=-1; hi=1; span=2; }
+
+    return [lo-0.12*span, hi+0.12*span];
+}
+
+function sample(){
+
+    const span=view.tmax-view.tmin;
+    let n=4000;
+
+    if(proto.type==="cos"){
+        const scale=(op.type==="scale"||op.type==="combo")?Math.abs(op.alpha):1;
+        n=Math.min(40000,Math.max(4000,Math.ceil(span*proto.f*scale*40)));
+    }
+
+    const ts=new Float64Array(n+1), xs=new Float64Array(n+1), ys=new Float64Array(n+1);
+
+    for(let i=0;i<=n;i++){
+        const t=view.tmin+span*i/n;
+        ts[i]=t;
+        xs[i]=xBase(t);
+        ys[i]=yBase(t);
+    }
+
+    return {ts,xs,ys,n};
+}
+
+function autoRange(cur){
+
+    let lo=0, hi=0;
+
+    [cur.xs,cur.ys].forEach(arr=>{
+        for(let i=0;i<=cur.n;i++){
+            const v=arr[i];
+            if(Number.isNaN(v)) continue;
+            if(v<lo) lo=v;
+            if(v>hi) hi=v;
+        }
+    });
+
+    return padRange(lo,hi);
+}
+
+// ======================================
+// CANVAS
+// ======================================
+
+const plotsBox=$("#plots");
+const cTop=$("#cTop"), cBot=$("#cBot");
+const dpr=()=>window.devicePixelRatio||1;
+let hoverX=null;
+
+function fit(){
+
+    const w=Math.max(280,Math.floor(plotsBox.clientWidth));
+    const h=Math.round(Math.min(400,Math.max(260,w*0.34)));
+
+    [cTop,cBot].forEach(cv=>{
+        cv._w=w;
+        cv._h=h;
+        cv.style.width=w+"px";
+        cv.style.height=h+"px";
+        cv.width=Math.round(w*dpr());
+        cv.height=Math.round(h*dpr());
+    });
+}
+
+function niceTicks(a,b,n){
+
+    const raw=(b-a)/n;
+    const mag=Math.pow(10,Math.floor(Math.log10(raw)));
+    const r=raw/mag;
+    const step=(r<=1?1:r<=2?2:r<=5?5:10)*mag;
+
+    const ticks=[];
+    for(let v=Math.ceil(a/step-1e-9)*step; v<=b+1e-9; v+=step){
+        ticks.push(Math.abs(v)<step*1e-9?0:v);
+    }
+
+    return {ticks,step};
+}
+
+function fmt(v,step){
+
+    if(v===0) return "0";
+
+    if(Math.abs(v)>=1e5 || Math.abs(v)<1e-3)
+        return v.toExponential(1).replace("e+","e");
+
+    const dec=Math.max(0,-Math.floor(Math.log10(step)+1e-9));
+    return v.toFixed(Math.min(dec,6));
+}
+
+function roundRect(ctx,x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.arcTo(x+w,y,x+w,y+h,r);
+    ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);
+    ctx.arcTo(x,y,x+w,y,r);
+    ctx.closePath();
+}
+
+// o: {title, color, vals, valFn, name, ghost}
+function drawPanel(cv,cur,ymin,ymax,o){
+
+    const W=cv._w, H=cv._h;
+    const ctx=cv.getContext("2d");
+
+    ctx.setTransform(dpr(),0,0,dpr(),0,0);
+    ctx.clearRect(0,0,W,H);
+    ctx.lineJoin="round";
+
+    const L=68, R=W-24, T=44, B=H-46;
+
+    const X=t=>L+(t-view.tmin)/(view.tmax-view.tmin)*(R-L);
+    const Y=v=>B-(v-ymin)/(ymax-ymin)*(B-T);
+
+    const xt=niceTicks(view.tmin,view.tmax,Math.max(4,Math.floor((R-L)/90)));
+    const yt=niceTicks(ymin,ymax,Math.max(3,Math.floor((B-T)/55)));
+
+    ctx.font="12px Arial";
+    ctx.lineWidth=1;
+
+    xt.ticks.forEach(v=>{
+        const x=X(v);
+
+        ctx.strokeStyle=C.grid;
+        ctx.beginPath(); ctx.moveTo(x,T); ctx.lineTo(x,B); ctx.stroke();
+
+        ctx.fillStyle=C.tick;
+        ctx.textAlign="center";
+        ctx.fillText(fmt(v,xt.step),x,B+17);
+    });
+
+    yt.ticks.forEach(v=>{
+        const y=Y(v);
+
+        ctx.strokeStyle=C.grid;
+        ctx.beginPath(); ctx.moveTo(L,y); ctx.lineTo(R,y); ctx.stroke();
+
+        ctx.fillStyle=C.tick;
+        ctx.textAlign="right";
+        ctx.fillText(fmt(v,yt.step),L-8,y+4);
+    });
+
+    // zero lines (only when visible)
+    ctx.strokeStyle=C.zero;
+    ctx.lineWidth=1.8;
+    ctx.beginPath();
+    if(ymin<=0&&ymax>=0){ ctx.moveTo(L,Y(0)); ctx.lineTo(R,Y(0)); }
+    if(view.tmin<=0&&view.tmax>=0){ ctx.moveTo(X(0),T); ctx.lineTo(X(0),B); }
+    ctx.stroke();
+
+    // frame
+    ctx.strokeStyle=C.axis;
+    ctx.lineWidth=1.5;
+    ctx.beginPath();
+    ctx.moveTo(L,T); ctx.lineTo(L,B); ctx.lineTo(R,B);
+    ctx.stroke();
+
+    // title and axis labels
+    ctx.fillStyle=C.text;
+    ctx.textAlign="left";
+    ctx.font="bold 16px Arial";
+    ctx.fillText(o.title,L,28);
+
+    ctx.textAlign="center";
+    ctx.font="14px Arial";
+    ctx.fillText("t  (seconds)",(L+R)/2,H-8);
+
+    ctx.save();
+    ctx.translate(18,(T+B)/2);
+    ctx.rotate(-Math.PI/2);
+    ctx.fillText(o.name,0,0);
+    ctx.restore();
+
+    // curves
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(L,T,R-L,B-T);
+    ctx.clip();
+    ctx.lineCap="round";
+
+    function trace(arr){
+
+        ctx.beginPath();
+        let pen=false;
+
+        for(let i=0;i<=cur.n;i++){
+
+            const v=arr[i];
+            if(Number.isNaN(v)){ pen=false; continue; }
+
+            const x=X(cur.ts[i]);
+            const y=Math.max(-1e5,Math.min(1e5,Y(v)));
+
+            if(!pen){ ctx.moveTo(x,y); pen=true; } else ctx.lineTo(x,y);
+        }
+    }
+
+    // original signal as a faint dashed reference in the result plot
+    if(o.ghost){
+        ctx.save();
+        ctx.globalAlpha=0.38;
+        ctx.strokeStyle=C.x;
+        ctx.lineWidth=2;
+        ctx.setLineDash([7,6]);
+        trace(cur.xs);
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    ctx.save();
+    ctx.shadowColor=o.color;
+    ctx.shadowBlur=C.glow;
+    ctx.strokeStyle=o.color;
+    ctx.lineWidth=3.2;
+    trace(o.vals);
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.restore();
+
+    // legend for the faint reference
+    if(o.ghost){
+
+        ctx.font="bold 12px Arial";
+        const label="original x(t)";
+        const w=ctx.measureText(label).width+52;
+        const bx=R-w-8, by=T+8;
+
+        roundRect(ctx,bx,by,w,28,8);
+        ctx.fillStyle=C.legendBg;
+        ctx.fill();
+
+        ctx.save();
+        ctx.globalAlpha=0.6;
+        ctx.strokeStyle=C.x;
+        ctx.lineWidth=2;
+        ctx.setLineDash([6,4]);
+        ctx.beginPath(); ctx.moveTo(bx+10,by+14); ctx.lineTo(bx+34,by+14); ctx.stroke();
+        ctx.restore();
+
+        ctx.fillStyle=C.x;
+        ctx.textAlign="left";
+        ctx.fillText(label,bx+40,by+18);
+    }
+
+    // hover read-out
+    if(hoverX!==null && hoverX>=L && hoverX<=R){
+
+        const t=view.tmin+(hoverX-L)/(R-L)*(view.tmax-view.tmin);
+        const v=o.valFn(t);
+
+        ctx.save();
+        ctx.strokeStyle=C.accent;
+        ctx.globalAlpha=0.7;
+        ctx.lineWidth=1.5;
+        ctx.setLineDash([5,5]);
+        ctx.beginPath(); ctx.moveTo(hoverX,T); ctx.lineTo(hoverX,B); ctx.stroke();
+        ctx.restore();
+
+        if(Number.isFinite(v)){
+
+            const py=Y(v);
+
+            if(py>=T&&py<=B){
+                ctx.fillStyle=C.accent;
+                ctx.beginPath(); ctx.arc(hoverX,py,6,0,2*Math.PI); ctx.fill();
+                ctx.strokeStyle=C.ring;
+                ctx.lineWidth=2;
+                ctx.beginPath(); ctx.arc(hoverX,py,6,0,2*Math.PI); ctx.stroke();
+            }
+
+            const label="t = "+t.toFixed(3)+" s,   "+o.name+" = "+
+                        (Math.abs(v)>=1e5?v.toExponential(3):v.toFixed(3));
+
+            ctx.font="bold 13px Arial";
+            const w=ctx.measureText(label).width+20;
+            const bx=Math.max(L,(o.ghost?R-w-8-190:R-w-8)), by=T+8;
+
+            roundRect(ctx,bx,by,w,28,8);
+            ctx.fillStyle=C.legendBg;
+            ctx.fill();
+
+            ctx.fillStyle=C.text;
+            ctx.textAlign="left";
+            ctx.fillText(label,bx+10,by+19);
+        }
+    }
+}
+
+// ======================================
+// RENDER
+// ======================================
+
+function render(){
+
+    const cur=sample();
+
+    let ymin, ymax;
+
+    if(view.auto){
+
+        [ymin,ymax]=autoRange(cur);
+
+        view.ymin=Number(ymin.toFixed(3));
+        view.ymax=Number(ymax.toFixed(3));
+        yminIn.value=view.ymin;
+        ymaxIn.value=view.ymax;
+    }
+    else{
+        ymin=view.ymin;
+        ymax=view.ymax;
+    }
+
+    const arg=argText();
+
+    // text blocks
+    $("#formula").textContent=protoEq();
+    $("#opformula").textContent="y(t) = x("+arg+")";
+    $("#opnote").textContent=opNote();
+
+    $("#status_eq").textContent=protoEq();
+    $("#status_rng").textContent="y(t) = x("+arg+") = "+substituted(arg);
+
+    drawPanel(cTop,cur,ymin,ymax,{
+        title:"Original signal  x(t)",
+        color:C.x, vals:cur.xs, valFn:xBase, name:"x(t)", ghost:false
+    });
+
+    drawPanel(cBot,cur,ymin,ymax,{
+        title:"Result of "+opName()+":   y(t) = x("+arg+")",
+        color:C.y, vals:cur.ys, valFn:yBase, name:"y(t)", ghost:true
+    });
+}
+
+[cTop,cBot].forEach(cv=>{
+
+    cv.addEventListener("mousemove",e=>{
+        const r=cv.getBoundingClientRect();
+        hoverX=(e.clientX-r.left)*(cv._w/r.width);
+        render();
+    });
+
+    cv.addEventListener("mouseleave",()=>{
+        hoverX=null;
+        render();
+    });
+
+    cv.addEventListener("touchmove",e=>{
+        const r=cv.getBoundingClientRect();
+        hoverX=(e.touches[0].clientX-r.left)*(cv._w/r.width);
+        render();
+    },{passive:true});
+
+    cv.addEventListener("touchend",()=>{
+        hoverX=null;
+        render();
+    });
+});
+
+// ======================================
+// RESPONSIVE RESIZING
+// ======================================
+
+function resize(){
+    fit();
+    render();
+}
+
+if(typeof ResizeObserver!=="undefined"){
+    new ResizeObserver(resize).observe(plotsBox);
+}
+window.addEventListener("resize",resize);
+
+// initial display
+fit();
+render();
+
+})();
+</script>
+
+</div>
+
+<script>
+// tell the parent page how tall this app is, so the iframe fits it exactly
+(function(){
+  var el=document.getElementById("app");
+  function send(){
+    var h=Math.ceil(el.getBoundingClientRect().height)+16;
+    if(window.parent!==window) window.parent.postMessage({appHeight:h,app:location.pathname},"*");
+  }
+  if(typeof ResizeObserver!=="undefined") new ResizeObserver(send).observe(el);
+  window.addEventListener("load",send);
+  window.addEventListener("resize",send);
+  send();
+})();
+</script>
+</body>
+</html>

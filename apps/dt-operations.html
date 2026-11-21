@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>1306203 – Time Operations (Discrete-Time)</title>
+<style>
+html,body{margin:0;padding:0;background:transparent;}
+body{padding:8px;}
+</style>
+</head>
+<body>
+
+<div id="app" class="animation-app">
+
+<style>
+#app {
+    width:100%;
+    max-width:1500px;
+    margin:auto;
+    padding:clamp(8px, 2vw, 24px);
+    box-sizing:border-box;
+    font-family:Arial,sans-serif;
+    position:relative;
+    color:#1f2a44;
+    background:linear-gradient(160deg,#f7f9ff 0%,#eaf0fc 100%);
+    border-radius:18px;
+    box-shadow:0 10px 30px rgba(31,42,68,0.10);
+}
+
+#app * { box-sizing:border-box; }
+
+#app h2 {
+    text-align:center;
+    font-size:clamp(20px, 2.6vw, 30px);
+    margin:12px 0 4px;
+    padding:0 140px;      /* keeps long titles clear of the mode button */
+    letter-spacing:0.5px;
+    background:linear-gradient(90deg,#2f6fed,#12a36a);
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color:transparent;
+    color:transparent;
+}
+
+#app .subtitle {
+    text-align:center;
+    font-size:clamp(13px,1.6vw,17px);
+    margin:0 0 18px;
+    opacity:0.8;
+}
+
+#app button.theme {
+    color:white;
+    border:0;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:bold;
+    white-space:nowrap;
+    touch-action:manipulation;
+    box-shadow:0 4px 10px rgba(0,0,0,0.22);
+    transition:transform .12s, filter .12s;
+    background:linear-gradient(135deg,#8b6cff,#5a3fd4);
+    position:absolute;
+    top:clamp(24px,3vw,36px);
+    right:clamp(8px,1.5vw,16px);
+    padding:8px 14px;
+    font-size:clamp(12px,1.3vw,14px);
+    z-index:2;
+}
+#app button.theme:hover { transform:translateY(-1px); filter:brightness(1.08); }
+#app button.theme:active { transform:scale(0.97); }
+
+/* ---------- two-column layout ---------- */
+#app .layout {
+    display:grid;
+    grid-template-columns:310px minmax(0,1fr);
+    gap:18px;
+    align-items:start;
+}
+
+#app .panel {
+    background:linear-gradient(180deg,#ffffff,#f0f4fc);
+    border:1px solid #cdd7ec;
+    border-radius:14px;
+    box-shadow:0 6px 18px rgba(31,42,68,0.12);
+    padding:14px;
+}
+
+#app .left { display:flex; flex-direction:column; gap:14px; }
+
+#app .panel h3 { margin:0 0 10px; font-size:17px; }
+#app .sigcard { --c:#2f6fed; }
+#app .sigcard h3 { color:var(--c); }
+
+#app .tiles {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+}
+
+#app .tile {
+    cursor:pointer;
+    border:2px solid #d3dcf0;
+    border-radius:10px;
+    padding:6px 4px 5px;
+    text-align:center;
+    font-size:12px;
+    font-weight:bold;
+    background:#ffffff;
+    user-select:none;
+    transition:border-color .12s, box-shadow .12s;
+}
+#app .tile:hover { border-color:var(--c); }
+#app .tile.active {
+    border-color:var(--c);
+    box-shadow:0 0 0 3px color-mix(in srgb, var(--c) 25%, transparent);
+}
+#app .tile svg { display:block; width:100%; height:36px; stroke:var(--c); fill:none; }
+
+#app .formula {
+    margin:12px 0 0;
+    padding:8px 10px;
+    border-radius:8px;
+    background:rgba(47,111,237,0.08);
+    font-size:14px;
+    font-weight:bold;
+    text-align:center;
+}
+
+#app .desc {
+    display:none;
+    margin-top:10px;
+    font-size:13px;
+    line-height:1.5;
+    opacity:0.85;
+}
+#app .desc.show { display:block; }
+
+#app .param {
+    display:none;
+    margin-top:10px;
+    font-size:13px;
+    font-weight:bold;
+}
+#app .param.show { display:block; }
+
+#app input[type=number] {
+    display:block;
+    width:100%;
+    margin-top:5px;
+    padding:7px;
+    font-size:15px;
+    border:1px solid #b9c5e0;
+    border-radius:8px;
+    background:#ffffff;
+    color:#1f2a44;
+    text-align:center;
+}
+#app input[type=number]:focus {
+    outline:none;
+    border-color:#2f6fed;
+    box-shadow:0 0 0 3px rgba(47,111,237,0.25);
+}
+#app input[type=number]:disabled { opacity:0.55; cursor:not-allowed; }
+
+#app .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+#app .grid2 label { font-size:13px; font-weight:bold; }
+
+#app .subhead {
+    margin:14px 0 6px;
+    font-size:14px;
+    font-weight:bold;
+}
+
+#app .seg {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:6px;
+    margin-bottom:10px;
+}
+#app .seg div {
+    cursor:pointer;
+    text-align:center;
+    padding:7px 4px;
+    border:2px solid #d3dcf0;
+    border-radius:9px;
+    background:#ffffff;
+    font-size:13px;
+    font-weight:bold;
+    user-select:none;
+}
+#app .seg div.active {
+    border-color:#2f6fed;
+    box-shadow:0 0 0 3px rgba(47,111,237,0.22);
+    color:#2f6fed;
+}
+
+#app .hint { margin-top:8px; font-size:12px; opacity:0.75; line-height:1.45; }
+
+/* ---------- right column ---------- */
+#app .right { min-width:0; }
+
+#app .statusrow {
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:10px;
+    margin-bottom:12px;
+}
+
+#app .status {
+    text-align:center;
+    width:fit-content;
+    max-width:100%;
+    margin:0;
+    padding:9px 20px;
+    border-radius:999px;
+    background:#ffffff;
+    border:1px solid #d3dcf0;
+    box-shadow:0 3px 10px rgba(31,42,68,0.08);
+    font-size:clamp(12px,1.5vw,16px);
+    font-weight:bold;
+}
+
+#app canvas {
+    display:block;
+    max-width:100%;
+    background:linear-gradient(180deg,#ffffff,#f0f4fc);
+    border:1px solid #cdd7ec;
+    border-radius:14px;
+    box-shadow:0 6px 18px rgba(31,42,68,0.12);
+}
+
+#app .plots { display:flex; flex-direction:column; gap:12px; min-width:0; }
+
+#app .tile { line-height:1.25; }
+
+/* ---------- dark mode ---------- */
+#app.dark {
+    background:linear-gradient(160deg,#0d1117 0%,#161d2e 100%);
+    color:#e6edf7;
+    box-shadow:0 10px 30px rgba(0,0,0,0.45);
+}
+#app.dark h2 {
+    background:linear-gradient(90deg,#6aa9ff,#3ddc97);
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+#app.dark .panel,
+#app.dark canvas {
+    background:linear-gradient(180deg,#1b2336,#111724);
+    border-color:#2f3b57;
+    box-shadow:0 6px 18px rgba(0,0,0,0.5);
+}
+#app.dark .sigcard { --c:#58a6ff; }
+#app.dark .tile,
+#app.dark .seg div { background:#0f1522; border-color:#33415f; }
+#app.dark .tile:hover,
+#app.dark .tile.active { border-color:var(--c); }
+#app.dark .seg div.active { border-color:#58a6ff; color:#6aa9ff; box-shadow:0 0 0 3px rgba(88,166,255,0.28); }
+#app.dark .formula { background:rgba(88,166,255,0.12); }
+#app.dark input[type=number] {
+    background:#0f1522;
+    color:#e6edf7;
+    border-color:#3b4866;
+}
+#app.dark input[type=number]:focus {
+    border-color:#58a6ff;
+    box-shadow:0 0 0 3px rgba(88,166,255,0.30);
+}
+#app.dark .status {
+    background:#1a2233;
+    border-color:#33415f;
+    color:#e6edf7;
+    box-shadow:0 3px 12px rgba(0,0,0,0.4);
+}
+
+/* ---------- responsive ---------- */
+@media (max-width:900px) {
+    #app .layout { grid-template-columns:1fr; }
+    #app .left { flex-direction:row; flex-wrap:wrap; }
+    #app .left .panel { flex:1 1 280px; }
+}
+
+@media (max-width:550px) {
+    #app { padding:6px; }
+    #app h2 { margin-top:64px; padding:0; }
+    #app button.theme { padding:7px 11px; }
+}
+</style>
+
+<button class="theme" id="theme">🌙 DARK MODE</button>
+
+<h2>1306203 Signals & Systems: Time Operations on a Discrete-Time Signal</h2>
+<div class="subtitle">Choose a prototype x[n] and a time operation: shifting, reversal or scaling</div>
+
+<div class="layout">
+
+    <!-- LEFT COLUMN -->
+    <div class="left">
+
+        <div class="panel sigcard" id="card_proto"></div>
+
+        <div class="panel sigcard" id="card_op"></div>
+
+        <div class="panel" id="card_axes">
+            <h3>Plotting area</h3>
+
+            <div class="subhead" style="margin-top:0">Index axis (n)</div>
+            <div class="grid2">
+                <label>n<sub>min</sub>
+                    <input id="tmin" type="number" value="-10" min="-1000" max="999" step="1">
+                </label>
+                <label>n<sub>max</sub>
+                    <input id="tmax" type="number" value="10" min="-999" max="1000" step="1">
+                </label>
+            </div>
+
+            <div class="hint">Integers only (at most 500 samples are shown).</div>
+
+            <div class="subhead">Amplitude axis</div>
+            <div class="seg">
+                <div id="m_auto" class="active">Auto scale</div>
+                <div id="m_fixed">Fixed values</div>
+            </div>
+
+            <div class="grid2">
+                <label>Min amplitude
+                    <input id="ymin" type="number" value="-1" step="0.5" disabled>
+                </label>
+                <label>Max amplitude
+                    <input id="ymax" type="number" value="1" step="0.5" disabled>
+                </label>
+            </div>
+
+            <div class="hint" id="axhint">Auto scale fits one common amplitude axis to both plots. The boxes show the range currently used.</div>
+        </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="right">
+        <div class="statusrow">
+            <div class="status" id="status_eq"></div>
+            <div class="status" id="status_rng"></div>
+        </div>
+        <div class="plots" id="plots">
+            <canvas id="cTop"></canvas>
+            <canvas id="cBot"></canvas>
+        </div>
+    </div>
+
+</div>
+
+<script>
+(function(){
+
+const root=document.getElementById("app");
+const $=s=>root.querySelector(s);
+
+// ======================================
+// DEFINITIONS
+// ======================================
+
+const PROTOS={
+    step:{label:"Unit step u[n]",
+          path:"M2 24 H38 M18 24 V6 M24 24 V6 M30 24 V6 M36 24 V6"},
+    exp: {label:"a<sup>n</sup> u[n]",
+          path:"M2 24 H38 M12 24 V6 M18 24 V12 M24 24 V16 M30 24 V19 M36 24 V21"},
+    cos: {label:"cos(2πf/F<sub>s</sub>·n + φ)",
+          path:"M2 14 H38 M5 14 V3 M11 14 V8.5 M17 14 V19.5 M23 14 V25 M29 14 V19.5 M35 14 V8.5"},
+    tent:{label:"Tent: n, then 2N − n",
+          path:"M2 24 H38 M8 24 V22 M14 24 V16 M20 24 V10 M26 24 V6 M32 24 V12"}
+};
+const PROTO_ORDER=["step","exp","cos","tent"];
+
+const OPS={
+    shift:{label:"Time shifting<br>x[n − n<sub>0</sub>]",
+           path:"M4 14 H30 M23 7 L31 14 L23 21"},
+    rev:  {label:"Time reversal<br>x[−n]",
+           path:"M2 14 H38 M10 7 L2 14 L10 21 M30 7 L38 14 L30 21"},
+    scale:{label:"Time scaling<br>x[αn]",
+           path:"M8 22 V6 M32 22 V6 M8 14 H32 M14 8 L8 14 L14 20 M26 8 L32 14 L26 20"},
+    combo:{label:"Shifting + scaling<br>x[αn + n<sub>0</sub>]",
+           path:"M3 14 H25 M19 8 L26 14 L19 20 M30 6 V22 M37 6 V22"}
+};
+const OP_ORDER=["shift","rev","scale","combo"];
+
+// adjustable parameters; "group" says which card they belong to
+// int:true  -> only whole numbers are accepted
+const PARAMS=[
+    {g:"proto",p:"a",    label:"Base a",                       types:["exp"],   min:-10,  max:10,  step:0.1},
+    {g:"proto",p:"f",    label:"Frequency f (Hz)",             types:["cos"],   min:0,    max:1000,step:0.1},
+    {g:"proto",p:"Fs",   label:"Sampling frequency F<sub>s</sub> (positive integer, Hz)", types:["cos"], min:1, max:10000, step:1, int:true},
+    {g:"proto",p:"k",    label:"Phase factor k  (φ = k·π)",    types:["cos"],   min:-100, max:100, step:0.1},
+    {g:"proto",p:"N",    label:"Length N (positive integer)",  types:["tent"],  min:1,    max:50,  step:1, int:true},
+    {g:"op",   p:"T0",   label:"Shift n<sub>0</sub> (integer)",types:["shift","combo"], min:-100, max:100, step:1, int:true},
+    {g:"op",   p:"alpha",label:"Scale factor α (non-zero integer)", types:["scale","combo"], min:-10, max:10, step:1, int:true, nonzero:true}
+];
+
+const DESCS={
+    step:"u[n] = 1 for n ≥ 0 and 0 for n &lt; 0."
+};
+
+const proto={type:"tent", a:0.8, f:1, Fs:10, k:0, N:4};
+const op={type:"shift", T0:3, alpha:2};
+const isOn=(state,id)=>state.type===id;
+
+const view={tmin:-10, tmax:10, auto:true, ymin:-1, ymax:1};
+
+// ======================================
+// LEFT COLUMN: CARDS
+// ======================================
+
+function buildCard(cardId,title,items,order,group,state){
+
+    const card=$(cardId);
+
+    let h='<h3>'+title+'</h3>'+(group==="op"?'<div style="font-size:12px;opacity:.75;margin:-4px 0 8px">Choose one operation at a time.</div>':'')+'<div class="tiles">';
+
+    order.forEach((id,i)=>{
+        const wide=(order.length%2===1&&i===order.length-1)?' style="grid-column:1 / -1"':'';
+        h+='<div class="tile" data-type="'+id+'"'+wide+'>'+
+           '<svg viewBox="0 0 40 28"><path d="'+items[id].path+
+           '" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
+           items[id].label+'</div>';
+    });
+
+    h+='</div>';
+
+    if(group==="proto") h+='<div class="formula" id="formula"></div>';
+    else                h+='<div class="formula" id="opformula"></div>';
+
+    PARAMS.filter(q=>q.g===group).forEach(q=>{
+        h+='<label class="param" data-for="'+q.types.join(" ")+'">'+q.label+
+           '<input type="number" data-p="'+q.p+'" min="'+q.min+'" max="'+q.max+
+           '" step="'+q.step+'" value="'+state[q.p]+'"></label>';
+    });
+
+    Object.keys(DESCS).forEach(id=>{
+        if(order.includes(id))
+            h+='<div class="desc" data-for="'+id+'">'+DESCS[id]+'</div>';
+    });
+
+    if(group==="op") h+='<div class="desc show" id="opnote"></div>';
+
+    card.innerHTML=h;
+
+    card.querySelectorAll(".tile").forEach(el=>{
+        el.addEventListener("click",()=>{
+            state.type=el.dataset.type;
+            refreshCard(cardId,state);
+            render();
+        });
+    });
+
+    card.querySelectorAll(".param input").forEach(inp=>{
+        inp.addEventListener("change",()=>{
+
+            const p=inp.dataset.p;
+            const q=PARAMS.find(r=>r.g===group&&r.p===p);
+
+            let v=Number(inp.value);
+
+            if(!Number.isFinite(v)) v=state[p];
+            if(q.int) v=Math.round(v);
+            v=Math.min(q.max,Math.max(q.min,v));
+            if(q.nonzero&&v===0) v=state[p];
+
+            inp.value=v;
+            state[p]=v;
+            render();
+        });
+    });
+
+    refreshCard(cardId,state);
+}
+
+function refreshCard(cardId,state){
+
+    const card=$(cardId);
+
+    card.querySelectorAll(".tile").forEach(el=>{
+        el.classList.toggle("active",isOn(state,el.dataset.type));
+    });
+
+    card.querySelectorAll(".param, .desc[data-for]").forEach(el=>{
+        el.classList.toggle("show",el.dataset.for.split(" ").some(id=>isOn(state,id)));
+    });
+}
+
+buildCard("#card_proto","1. Signal prototype x[n]",PROTOS,PROTO_ORDER,"proto",proto);
+buildCard("#card_op","2. Time operation",OPS,OP_ORDER,"op",op);
+
+// ======================================
+// PLOT AREA SETTINGS (left column)
+// ======================================
+
+const tminIn=$("#tmin"), tmaxIn=$("#tmax"), yminIn=$("#ymin"), ymaxIn=$("#ymax");
+
+function applyTime(){
+
+    let a=Number(tminIn.value), b=Number(tmaxIn.value);
+
+    if(!Number.isFinite(a)||!Number.isFinite(b)){
+        tminIn.value=view.tmin; tmaxIn.value=view.tmax;
+        return;
+    }
+
+    a=Math.round(a); b=Math.round(b);
+
+    if(b<=a||b-a>500){
+        tminIn.value=view.tmin; tmaxIn.value=view.tmax;
+        return;
+    }
+
+    tminIn.value=a; tmaxIn.value=b;
+    view.tmin=a; view.tmax=b;
+    render();
+}
+
+function applyY(){
+
+    const a=Number(yminIn.value), b=Number(ymaxIn.value);
+
+    if(!Number.isFinite(a)||!Number.isFinite(b)||b<=a){
+        yminIn.value=view.ymin;
+        ymaxIn.value=view.ymax;
+        return;
+    }
+
+    view.ymin=a;
+    view.ymax=b;
+    render();
+}
+
+tminIn.addEventListener("change",applyTime);
+tmaxIn.addEventListener("change",applyTime);
+yminIn.addEventListener("change",applyY);
+ymaxIn.addEventListener("change",applyY);
+
+function setMode(auto){
+
+    view.auto=auto;
+
+    $("#m_auto").classList.toggle("active",auto);
+    $("#m_fixed").classList.toggle("active",!auto);
+
+    yminIn.disabled=auto;
+    ymaxIn.disabled=auto;
+
+    $("#axhint").textContent=auto
+        ? "Auto scale fits one common amplitude axis to both plots. The boxes show the range currently used."
+        : "Fixed values: both plots use exactly the minimum and maximum above.";
+
+    render();
+}
+
+$("#m_auto").addEventListener("click",()=>setMode(true));
+$("#m_fixed").addEventListener("click",()=>setMode(false));
+
+// ======================================
+// THEMES
+// ======================================
+
+const themes={
+    light:{text:"#1f2a44",tick:"#44506e",axis:"#44506e",zero:"#9aa6bf",grid:"#e0e6f3",
+           x:"#2f6fed",y:"#12a36a",accent:"#e5484d",ring:"#ffffff",
+           legendBg:"rgba(255,255,255,0.92)",glow:5},
+    dark:{text:"#e6edf7",tick:"#b4c0d9",axis:"#b4c0d9",zero:"#6e7b96",grid:"#27324a",
+          x:"#58a6ff",y:"#3ddc97",accent:"#ff6b6b",ring:"#111724",
+          legendBg:"rgba(15,21,34,0.92)",glow:14}
+};
+
+let darkMode=!!(window.matchMedia &&
+    window.matchMedia("(prefers-color-scheme: dark)").matches);
+let C=themes.light;
+const themeBtn=$("#theme");
+
+function applyTheme(){
+    C=darkMode?themes.dark:themes.light;
+    root.classList.toggle("dark",darkMode);
+    themeBtn.textContent=darkMode?"☀ LIGHT MODE":"🌙 DARK MODE";
+}
+
+themeBtn.addEventListener("click",()=>{
+    darkMode=!darkMode;
+    applyTheme();
+    render();
+});
+
+applyTheme();
+
+// ======================================
+// SIGNALS AND TIME OPERATIONS
+// ======================================
+
+function num(v){
+    const r=Math.round(v*1e4)/1e4;
+    return String(r).replace("-","−");
+}
+
+// the prototype x[n]  (n is an integer)
+function xBase(n){
+
+    let v;
+
+    if(proto.type==="step")      v=n>=0?1:0;
+    else if(proto.type==="exp")  v=n>=0?Math.pow(proto.a,n):0;       // a = 0 gives the unit impulse
+    else if(proto.type==="cos")  v=Math.cos(2*Math.PI*proto.f/proto.Fs*n+proto.k*Math.PI);
+    else if(n>=0&&n<proto.N)     v=n;
+    else if(n>=proto.N&&n<2*proto.N) v=2*proto.N-n;
+    else                         v=0;
+
+    return (Number.isFinite(v)&&Math.abs(v)<=1e15)?v:NaN;
+}
+
+// argument of x[.] for the chosen time operation
+function argOf(n){
+    if(op.type==="shift") return n-op.T0;
+    if(op.type==="rev")   return -n;
+    if(op.type==="scale") return op.alpha*n;
+    return op.alpha*n+op.T0;
+}
+
+function yBase(n){ return xBase(argOf(n)); }
+
+// ---------- text ----------
+
+function phaseText(){
+    return proto.k===0?"":(proto.k<0?" − "+num(-proto.k):" + "+num(proto.k))+"π";
+}
+
+function protoEq(){
+    if(proto.type==="step") return "x[n] = u[n]";
+    if(proto.type==="exp")  return proto.a===0 ? "x[n] = δ[n]   (a = 0)"
+                                               : "x[n] = ("+num(proto.a)+")ⁿ · u[n]";
+    if(proto.type==="cos")  return "x[n] = cos(2π · "+num(proto.f)+"/"+proto.Fs+" · n"+phaseText()+")";
+    return "x[n] = n for 0 ≤ n < "+proto.N+";   "+(2*proto.N)+" − n for "+proto.N+" ≤ n < "+(2*proto.N)+";   0 otherwise";
+}
+
+function argText(){
+
+    if(op.type==="shift"){
+        if(op.T0===0) return "n";
+        return op.T0>0?"n − "+num(op.T0):"n + "+num(-op.T0);
+    }
+
+    if(op.type==="rev") return "−n";
+
+    const an=op.alpha===1?"n":(op.alpha===-1?"−n":num(op.alpha)+"n");
+
+    if(op.type==="scale"||op.T0===0) return an;
+
+    return an+(op.T0>0?" + "+num(op.T0):" − "+num(-op.T0));
+}
+
+function substituted(arg){
+
+    const par=(arg==="n")?"n":"("+arg+")";
+
+    if(proto.type==="step") return "u["+arg+"]";
+    if(proto.type==="exp")  return proto.a===0 ? "δ["+arg+"]"
+                                               : "("+num(proto.a)+")^"+par+" · u["+arg+"]";
+    if(proto.type==="cos")  return "cos(2π · "+num(proto.f)+"/"+proto.Fs+" · "+par+phaseText()+")";
+    return par+" for 0 ≤ "+arg+" < "+proto.N+";   ("+(2*proto.N)+" − "+par+") for "+proto.N+" ≤ "+arg+" < "+(2*proto.N)+";   0 otherwise";
+}
+
+function opName(){
+    if(op.type==="shift") return "time shifting";
+    if(op.type==="rev")   return "time reversal";
+    if(op.type==="scale") return "time scaling";
+    return "time shifting + scaling";
+}
+
+function scaleNote(){
+
+    const a=Math.abs(op.alpha);
+    let t;
+
+    if(a>1) t="decimated: only every "+a+(a===2?"nd":a===3?"rd":"th")+" sample of x[n] is kept, the samples in between are lost";
+    else    t="not scaled (|α| = 1)";
+
+    return "The signal is "+t+(op.alpha<0?" and also reversed (α is negative)":"")+".";
+}
+
+function opNote(){
+
+    if(op.type==="shift"){
+        if(op.T0>0) return "x[n] is delayed: every sample moves to the right by "+op.T0+" index step(s).";
+        if(op.T0<0) return "x[n] is advanced: every sample moves to the left by "+(-op.T0)+" index step(s).";
+        return "n₀ = 0, so the signal is unchanged.";
+    }
+
+    if(op.type==="rev") return "The signal is mirrored about n = 0 (left and right are swapped).";
+
+    if(op.type==="scale") return scaleNote();
+
+    return scaleNote()+" Equivalent to x[α(n + n₀/α)]: scaling first, then a shift of "+
+           num(-op.T0/op.alpha)+" (= −n₀/α) index steps.";
+}
+
+// ======================================
+// SAMPLING AND RANGES
+// ======================================
+
+function padRange(lo,hi){
+
+    lo=Math.min(0,lo);
+    hi=Math.max(0,hi);
+
+    let span=hi-lo;
+    if(span<1e-12){ lo=-1; hi=1; span=2; }
+
+    return [lo-0.12*span, hi+0.12*span];
+}
+
+// all samples n = nmin .. nmax
+function sample(){
+
+    const count=view.tmax-view.tmin+1;
+    const xs=new Float64Array(count), ys=new Float64Array(count);
+
+    for(let i=0;i<count;i++){
+        xs[i]=xBase(view.tmin+i);
+        ys[i]=yBase(view.tmin+i);
+    }
+
+    return {xs,ys,count};
+}
+
+function autoRange(cur){
+
+    let lo=0, hi=0;
+
+    [cur.xs,cur.ys].forEach(arr=>{
+        for(let i=0;i<cur.count;i++){
+            const v=arr[i];
+            if(Number.isNaN(v)) continue;
+            if(v<lo) lo=v;
+            if(v>hi) hi=v;
+        }
+    });
+
+    return padRange(lo,hi);
+}
+
+// ======================================
+// CANVAS
+// ======================================
+
+const plotsBox=$("#plots");
+const cTop=$("#cTop"), cBot=$("#cBot");
+const dpr=()=>window.devicePixelRatio||1;
+let hoverX=null;
+
+function fit(){
+
+    const w=Math.max(280,Math.floor(plotsBox.clientWidth));
+    const h=Math.round(Math.min(400,Math.max(260,w*0.34)));
+
+    [cTop,cBot].forEach(cv=>{
+        cv._w=w;
+        cv._h=h;
+        cv.style.width=w+"px";
+        cv.style.height=h+"px";
+        cv.width=Math.round(w*dpr());
+        cv.height=Math.round(h*dpr());
+    });
+}
+
+function niceTicks(a,b,n){
+
+    const raw=(b-a)/n;
+    const mag=Math.pow(10,Math.floor(Math.log10(raw)));
+    const r=raw/mag;
+    const step=(r<=1?1:r<=2?2:r<=5?5:10)*mag;
+
+    const ticks=[];
+    for(let v=Math.ceil(a/step-1e-9)*step; v<=b+1e-9; v+=step){
+        ticks.push(Math.abs(v)<step*1e-9?0:v);
+    }
+
+    return {ticks,step};
+}
+
+function fmt(v,step){
+
+    if(v===0) return "0";
+
+    if(Math.abs(v)>=1e5 || Math.abs(v)<1e-3)
+        return v.toExponential(1).replace("e+","e");
+
+    const dec=Math.max(0,-Math.floor(Math.log10(step)+1e-9));
+    return v.toFixed(Math.min(dec,6));
+}
+
+function roundRect(ctx,x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.arcTo(x+w,y,x+w,y+h,r);
+    ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);
+    ctx.arcTo(x,y,x+w,y,r);
+    ctx.closePath();
+}
+
+// integer ticks for the index axis
+function intTicks(a,b,maxCount){
+
+    const raw=(b-a)/maxCount;
+    const cand=[1,2,5,10,20,50,100,200,500];
+    let step=cand[cand.length-1];
+
+    for(const c of cand){ if(c>=raw){ step=c; break; } }
+
+    const ticks=[];
+    for(let v=Math.ceil(a/step)*step; v<=b; v+=step) ticks.push(v);
+
+    return ticks;
+}
+
+// o: {title, color, vals, valFn, name, ghost}
+function drawPanel(cv,cur,ymin,ymax,o){
+
+    const W=cv._w, H=cv._h;
+    const ctx=cv.getContext("2d");
+
+    ctx.setTransform(dpr(),0,0,dpr(),0,0);
+    ctx.clearRect(0,0,W,H);
+    ctx.lineJoin="round";
+
+    const L=68, R=W-24, T=44, B=H-46;
+
+    const x0=view.tmin-0.5, x1=view.tmax+0.5;
+    const unit=(R-L)/(x1-x0);
+
+    const X=n=>L+(n-x0)/(x1-x0)*(R-L);
+    const Y=v=>B-(v-ymin)/(ymax-ymin)*(B-T);
+
+    const xt=intTicks(view.tmin,view.tmax,Math.max(4,Math.floor((R-L)/48)));
+    const yt=niceTicks(ymin,ymax,Math.max(3,Math.floor((B-T)/55)));
+
+    ctx.font="12px Arial";
+    ctx.lineWidth=1;
+
+    xt.forEach(v=>{
+        const x=X(v);
+
+        ctx.strokeStyle=C.grid;
+        ctx.beginPath(); ctx.moveTo(x,T); ctx.lineTo(x,B); ctx.stroke();
+
+        ctx.fillStyle=C.tick;
+        ctx.textAlign="center";
+        ctx.fillText(String(v),x,B+17);
+    });
+
+    yt.ticks.forEach(v=>{
+        const y=Y(v);
+
+        ctx.strokeStyle=C.grid;
+        ctx.beginPath(); ctx.moveTo(L,y); ctx.lineTo(R,y); ctx.stroke();
+
+        ctx.fillStyle=C.tick;
+        ctx.textAlign="right";
+        ctx.fillText(fmt(v,yt.step),L-8,y+4);
+    });
+
+    // zero lines
+    ctx.strokeStyle=C.zero;
+    ctx.lineWidth=1.8;
+    ctx.beginPath();
+    if(ymin<=0&&ymax>=0){ ctx.moveTo(L,Y(0)); ctx.lineTo(R,Y(0)); }
+    if(view.tmin<=0&&view.tmax>=0){ ctx.moveTo(X(0),T); ctx.lineTo(X(0),B); }
+    ctx.stroke();
+
+    // frame
+    ctx.strokeStyle=C.axis;
+    ctx.lineWidth=1.5;
+    ctx.beginPath();
+    ctx.moveTo(L,T); ctx.lineTo(L,B); ctx.lineTo(R,B);
+    ctx.stroke();
+
+    // title and axis labels
+    ctx.fillStyle=C.text;
+    ctx.textAlign="left";
+    ctx.font="bold 16px Arial";
+    ctx.fillText(o.title,L,28);
+
+    ctx.textAlign="center";
+    ctx.font="14px Arial";
+    ctx.fillText("n  (sample index)",(L+R)/2,H-8);
+
+    ctx.save();
+    ctx.translate(18,(T+B)/2);
+    ctx.rotate(-Math.PI/2);
+    ctx.fillText(o.name,0,0);
+    ctx.restore();
+
+    // stems
+    const r=cur.count>150?2:cur.count>90?2.6:cur.count>50?3.4:cur.count>30?4.2:5;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(L,T,R-L,B-T);
+    ctx.clip();
+    ctx.lineCap="round";
+
+    // original signal as faint hollow markers in the result plot
+    if(o.ghost){
+        ctx.save();
+        ctx.globalAlpha=0.45;
+        ctx.strokeStyle=C.x;
+        ctx.lineWidth=1.6;
+        for(let i=0;i<cur.count;i++){
+            const v=cur.xs[i];
+            if(Number.isNaN(v)||v===0) continue;
+            const x=X(view.tmin+i)-Math.min(6,unit*0.18), y=Math.max(-1e5,Math.min(1e5,Y(v)));
+            ctx.beginPath(); ctx.arc(x,y,r*0.9,0,2*Math.PI); ctx.stroke();
+        }
+        ctx.restore();
+    }
+
+    ctx.save();
+    ctx.strokeStyle=o.color;
+    ctx.fillStyle=o.color;
+    ctx.lineWidth=cur.count>90?1.6:2.6;
+    ctx.shadowColor=o.color;
+    ctx.shadowBlur=C.glow;
+
+    for(let i=0;i<cur.count;i++){
+
+        const v=o.vals[i];
+        if(Number.isNaN(v)) continue;
+
+        const x=X(view.tmin+i);
+        const y=Math.max(-1e5,Math.min(1e5,Y(v)));
+
+        if(v!==0){
+            ctx.beginPath(); ctx.moveTo(x,Y(0)); ctx.lineTo(x,y); ctx.stroke();
+        }
+
+        ctx.beginPath(); ctx.arc(x,y,v===0?r*0.55:r,0,2*Math.PI); ctx.fill();
+    }
+
+    ctx.restore();
+    ctx.restore();
+
+    // legend for the faint reference
+    if(o.ghost){
+
+        ctx.font="bold 12px Arial";
+        const label="original x[n]";
+        const w=ctx.measureText(label).width+40;
+        const bx=R-w-8, by=T+8;
+
+        roundRect(ctx,bx,by,w,28,8);
+        ctx.fillStyle=C.legendBg;
+        ctx.fill();
+
+        ctx.save();
+        ctx.globalAlpha=0.7;
+        ctx.strokeStyle=C.x;
+        ctx.lineWidth=1.6;
+        ctx.beginPath(); ctx.arc(bx+16,by+14,5,0,2*Math.PI); ctx.stroke();
+        ctx.restore();
+
+        ctx.fillStyle=C.x;
+        ctx.textAlign="left";
+        ctx.fillText(label,bx+28,by+18);
+    }
+
+    // hover read-out (nearest sample)
+    if(hoverX!==null && hoverX>=L && hoverX<=R){
+
+        const n=Math.min(view.tmax,Math.max(view.tmin,Math.round(view.tmin+(hoverX-L)/unit-0.5)));
+        const v=o.valFn(n);
+        const hx=X(n);
+
+        ctx.save();
+        ctx.strokeStyle=C.accent;
+        ctx.globalAlpha=0.7;
+        ctx.lineWidth=1.5;
+        ctx.setLineDash([5,5]);
+        ctx.beginPath(); ctx.moveTo(hx,T); ctx.lineTo(hx,B); ctx.stroke();
+        ctx.restore();
+
+        if(Number.isFinite(v)){
+
+            const py=Y(v);
+
+            if(py>=T&&py<=B){
+                ctx.fillStyle=C.accent;
+                ctx.beginPath(); ctx.arc(hx,py,r+2,0,2*Math.PI); ctx.fill();
+                ctx.strokeStyle=C.ring;
+                ctx.lineWidth=2;
+                ctx.beginPath(); ctx.arc(hx,py,r+2,0,2*Math.PI); ctx.stroke();
+            }
+
+            const label="n = "+n+",   "+o.name+" = "+
+                        (Math.abs(v)>=1e5?v.toExponential(3):v.toFixed(3));
+
+            ctx.font="bold 13px Arial";
+            const w=ctx.measureText(label).width+20;
+            const bx=Math.max(L,(o.ghost?R-w-8-170:R-w-8)), by=T+8;
+
+            roundRect(ctx,bx,by,w,28,8);
+            ctx.fillStyle=C.legendBg;
+            ctx.fill();
+
+            ctx.fillStyle=C.text;
+            ctx.textAlign="left";
+            ctx.fillText(label,bx+10,by+19);
+        }
+    }
+}
+
+// ======================================
+// RENDER
+// ======================================
+
+function render(){
+
+    const cur=sample();
+
+    let ymin, ymax;
+
+    if(view.auto){
+
+        [ymin,ymax]=autoRange(cur);
+
+        view.ymin=Number(ymin.toFixed(3));
+        view.ymax=Number(ymax.toFixed(3));
+        yminIn.value=view.ymin;
+        ymaxIn.value=view.ymax;
+    }
+    else{
+        ymin=view.ymin;
+        ymax=view.ymax;
+    }
+
+    const arg=argText();
+
+    $("#formula").textContent=protoEq();
+    $("#opformula").textContent="y[n] = x["+arg+"]";
+    $("#opnote").textContent=opNote();
+
+    $("#status_eq").textContent=protoEq();
+    $("#status_rng").textContent="y[n] = x["+arg+"] = "+substituted(arg);
+
+    drawPanel(cTop,cur,ymin,ymax,{
+        title:"Original signal  x[n]",
+        color:C.x, vals:cur.xs, valFn:xBase, name:"x[n]", ghost:false
+    });
+
+    drawPanel(cBot,cur,ymin,ymax,{
+        title:"Result of "+opName()+":   y[n] = x["+arg+"]",
+        color:C.y, vals:cur.ys, valFn:yBase, name:"y[n]", ghost:true
+    });
+}
+
+[cTop,cBot].forEach(cv=>{
+
+    cv.addEventListener("mousemove",e=>{
+        const r=cv.getBoundingClientRect();
+        hoverX=(e.clientX-r.left)*(cv._w/r.width);
+        render();
+    });
+
+    cv.addEventListener("mouseleave",()=>{
+        hoverX=null;
+        render();
+    });
+
+    cv.addEventListener("touchmove",e=>{
+        const r=cv.getBoundingClientRect();
+        hoverX=(e.touches[0].clientX-r.left)*(cv._w/r.width);
+        render();
+    },{passive:true});
+
+    cv.addEventListener("touchend",()=>{
+        hoverX=null;
+        render();
+    });
+});
+
+// ======================================
+// RESPONSIVE RESIZING
+// ======================================
+
+function resize(){
+    fit();
+    render();
+}
+
+if(typeof ResizeObserver!=="undefined"){
+    new ResizeObserver(resize).observe(plotsBox);
+}
+window.addEventListener("resize",resize);
+
+// initial display
+fit();
+render();
+
+})();
+</script>
+
+</div>
+
+<script>
+// tell the parent page how tall this app is, so the iframe fits it exactly
+(function(){
+  var el=document.getElementById("app");
+  function send(){
+    var h=Math.ceil(el.getBoundingClientRect().height)+16;
+    if(window.parent!==window) window.parent.postMessage({appHeight:h,app:location.pathname},"*");
+  }
+  if(typeof ResizeObserver!=="undefined") new ResizeObserver(send).observe(el);
+  window.addEventListener("load",send);
+  window.addEventListener("resize",send);
+  send();
+})();
+</script>
+</body>
+</html>
